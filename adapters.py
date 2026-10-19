@@ -13,13 +13,13 @@ class Result:
     def d(self): return asdict(self)
 
 class Adapter:
-    name = "?"; job = ""; env = ()
+    name = "?"; job = ""; env = (); sim_reason = "no verified API integration built yet"
     def configured(self): return all(os.environ.get(e) for e in self.env)
     def real(self, action, payload): raise NotImplementedError
     def call(self, action, payload=None):
         payload = payload or {}
         if not self.env:
-            return Result(self.name, action, "simulated", "no verified API integration built yet")
+            return Result(self.name, action, "simulated", self.sim_reason)
         if not self.configured():
             return Result(self.name, action, "simulated", "not configured: set " + ", ".join(self.env))
         try:
@@ -160,11 +160,13 @@ class Paritok(Adapter):
         return {"gateway_version": h.get("version"), "requests_through_gateway": s["total_requests"], "tokens_saved": s.get("tokens_saved", 0), "input_tokens_original": s.get("input_tokens_original", 0)}
 
 class Plain(Adapter):
-    def __init__(s, name, job): s.name, s.job = name, job
+    def __init__(s, name, job, sim_reason=None):
+        s.name, s.job = name, job
+        if sim_reason: s.sim_reason = sim_reason
 
 def registry():
     return {a.name: a for a in [N8n(), RocketRide(), Celesto(), Snyk(),
         RepoSide("Prelint", "PR compliance review of the agent spec", "VIGIL_PRELINT_EVIDENCE_URL"),
         TenkiSandbox("Tenki", "CI runner for the test suite (repo-side) and a sandbox VM that re-runs Vera's compliance lint", "VIGIL_TENKI_EVIDENCE_URL"),
-        Band(), Paritok(), Glasser(), Plain("PromptQL", "natural-language ledger queries"),
-        Plain("Flatkey", "model API / failover gateway (not a key vault)"), Plain("Masky", "avatar for Faye")]}
+        Band(), Paritok(), Glasser(), Plain("PromptQL", "natural-language ledger queries", "3/3 verified answers in PromptQL workspace on the pasted price list and ledger; no runtime API call"),
+        Plain("Flatkey", "model API / failover gateway (not a key vault)"), Plain("Masky", "avatar portraits for the six agents", "six portraits generated in Masky (real assets); no runtime API call")]}
