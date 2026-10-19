@@ -1,71 +1,231 @@
 <!doctype html><html lang=en><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Vigil - AI night staff for family-owned funeral homes (FICTIONAL demo)</title>
 <style>
-:root{--bg:#0a0d12;--ink:#eef1f5;--dim:#9aa6b6;--gold:#f2b84b;--warm:#f6e3c3;--panel:#131923;--line:#212b3a;--green:#55d68a;--blue:#4aa3ff;--red:#e06060}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,sans-serif}
-.serif{font-family:Georgia,'Times New Roman',serif}a{color:#8cc4ff}
-.banner{background:#7a4b00;color:#fff;padding:8px 24px;font-weight:600;font-size:13px;position:sticky;top:0;z-index:20}
-nav{position:sticky;top:34px;z-index:19;display:flex;gap:18px;align-items:center;padding:12px 28px;background:#0a0d12cc;backdrop-filter:blur(8px);border-bottom:1px solid #ffffff10}
-nav b{font:700 20px Georgia,serif;letter-spacing:.5px;margin-right:auto}nav a{color:var(--dim);text-decoration:none;font-size:14px}nav a:hover{color:var(--ink)}
-.btn{display:inline-block;padding:14px 26px;border-radius:10px;font-weight:700;text-decoration:none;font-size:16px;border:0;cursor:pointer;font-family:inherit}
-.btn.go{background:var(--gold);color:#241800}.btn.alt{background:#1b2332;color:var(--ink);border:1px solid var(--line)}
-.hero{min-height:min(88vh,760px);display:flex;align-items:center;justify-content:center;text-align:center;padding:60px 24px;background:radial-gradient(800px 480px at 50% 35%,#2a2110aa,transparent 70%),radial-gradient(1000px 600px at 50% -10%,#16202e,transparent)}
-.hero .clock{font:600 15px ui-monospace,monospace;letter-spacing:4px;color:var(--gold)}
-.hero h1{font:400 clamp(34px,6vw,70px)/1.1 Georgia,serif;margin:18px auto;max-width:900px}
-.hero p.sub{font-size:clamp(17px,2vw,21px);color:var(--warm);max-width:720px;margin:0 auto 28px;opacity:.9}
-.glow{width:14px;height:14px;border-radius:50%;background:var(--gold);margin:0 auto 18px;box-shadow:0 0 30px 12px #f2b84b88;animation:flick 3s infinite}@keyframes flick{40%{opacity:.7;box-shadow:0 0 18px 6px #f2b84b66}60%{opacity:1}}
-section{padding:90px 24px;max-width:1100px;margin:0 auto}section h2{font:400 clamp(28px,4vw,44px)/1.15 Georgia,serif;margin:0 0 14px}
-.lead{color:var(--dim);max-width:720px;font-size:19px}
-.rv{opacity:0;transform:translateY(26px);transition:all .9s}.rv.in{opacity:1;transform:none}
-.chap{display:grid;grid-template-columns:130px 1fr;gap:24px;padding:34px 0;border-top:1px solid var(--line)}.chap .t{font:600 15px ui-monospace,monospace;color:var(--gold);letter-spacing:2px}.chap h3{font:400 26px Georgia,serif;margin:0 0 6px}.chap p{margin:0;color:#c3ccd8}
-@media(max-width:700px){.chap{grid-template-columns:1fr;gap:6px}}
-.team{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px;margin-top:30px}
-.tc{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:transform .3s,border-color .3s}.tc:hover{transform:translateY(-4px);border-color:#3a4a63}
-.tc .ph{position:relative;aspect-ratio:1/1;background:#1b2332}.tc img,.tc video{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
-.tc video{opacity:0;transition:opacity .3s}.tc.playing video{opacity:1}
-.tc .play{position:absolute;right:12px;bottom:12px;z-index:3;background:#000a;color:#fff;border:1px solid #ffffff44;border-radius:30px;padding:8px 14px;cursor:pointer;font:600 13px system-ui}
-.tc .bd{padding:14px 16px 16px}.tc h4{margin:0;font:400 24px Georgia,serif}.tc .rl{color:var(--gold);font-size:13px;letter-spacing:1px;text-transform:uppercase}.tc p{margin:8px 0 6px;color:#c3ccd8;font-size:15px}.tc small{color:var(--dim);font-size:12px;display:block}
-.gate{margin-top:26px;background:linear-gradient(135deg,#251c0a,#101722);border:1px solid #6b5420;border-radius:18px;padding:28px;box-shadow:0 0 50px #f2b84b22;animation:gp 3s infinite}@keyframes gp{50%{box-shadow:0 0 14px #f2b84b11}}
-.gate .b{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}.gate li{margin:5px 0;color:#d6dde7}
-.btn.ap{background:var(--green);color:#06210f}.btn.dn{background:var(--red);color:#fff}
-.score{width:100%;border-collapse:collapse;margin-top:22px;font-size:15px}.score td,.score th{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.score th{color:var(--dim);font-weight:600;font-size:12px;letter-spacing:1.5px;text-transform:uppercase}
-.m{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:1px}.m.REAL{background:#123a24;color:var(--green)}.m.EXTERNAL{background:#10304f;color:var(--blue)}.m.SIMULATED{background:#2b2f38;color:#c0c8d4}.m.FALLBACK{background:#4a3a10;color:var(--gold)}
-.tally{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px}.tally div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 20px}.tally b{font:400 34px Georgia,serif;display:block}
-.cta{text-align:center;padding:100px 24px;background:radial-gradient(700px 320px at 50% 100%,#2a2110aa,transparent)}
-footer{border-top:1px solid var(--line);padding:30px 24px;text-align:center;color:var(--dim);font-size:13px}
+:root{--bg:#07090f;--ink:#efede7;--dim:#98a0af;--lamp:#f3c98b;--lamp2:#e0a95e;--sage:#7fd6a8;--sky:#8ab8ff;--rose:#f08a8a;--line:#ffffff17;--serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;--sans:-apple-system,'Segoe UI',system-ui,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.banner{position:fixed;top:0;left:0;right:0;z-index:50;background:#0c0a06ee;color:#e9c98f;border-bottom:1px solid #f3c98b2a;padding:7px 20px;font-size:11.5px;letter-spacing:.2px;text-align:center;backdrop-filter:blur(8px)}
+nav{position:fixed;top:30px;left:0;right:0;z-index:40;display:flex;align-items:center;gap:26px;padding:16px 40px;transition:background .4s}
+nav.s{background:#07090fcc;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+nav .logo{font:400 26px var(--serif);letter-spacing:.5px;margin-right:auto;text-decoration:none}
+nav a.l{font-size:13px;color:var(--dim);text-decoration:none;letter-spacing:.3px}nav a.l:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:40px;font:600 15px var(--sans);text-decoration:none;border:0;cursor:pointer;color:var(--ink);transition:transform .25s,box-shadow .25s}
+.btn:hover{transform:translateY(-2px)}
+.btn.go{background:linear-gradient(180deg,#f7dcae,#e5b46b);color:#2a1c05;box-shadow:0 14px 34px -10px #e5b46b99}
+.btn.ghost{background:#ffffff10;box-shadow:0 0 0 1px #ffffff22 inset;backdrop-filter:blur(8px)}
+.btn.sm{padding:9px 18px;font-size:13px}
+/* HERO */
+.hero{position:relative;min-height:100vh;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:20px;padding:150px 6vw 90px;overflow:hidden;isolation:isolate}
+.sky{position:absolute;inset:-10% 0 0;z-index:-3;background:linear-gradient(180deg,#05070d 0%,#0b1226 45%,#1b1a2c 80%,#2c2230 100%)}
+.moon{opacity:.85;position:absolute;z-index:-2;right:14%;top:14%;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff7e6,#e9dcc0 55%,#bfae8c);box-shadow:0 0 90px 30px #e9dcc033,0 0 240px 90px #8ab8ff22;filter:blur(.4px)}
+.city{position:absolute;z-index:-2;left:0;right:0;bottom:0;height:34%;background:
+ radial-gradient(3px 3px at 8% 70%,#f3c98b,transparent),radial-gradient(2px 2px at 14% 52%,#f3c98baa,transparent),radial-gradient(3px 3px at 23% 78%,#8ab8ffaa,transparent),radial-gradient(2px 2px at 31% 60%,#f3c98b,transparent),radial-gradient(3px 3px at 44% 74%,#f3c98b,transparent),radial-gradient(2px 2px at 52% 48%,#f3c98b88,transparent),radial-gradient(3px 3px at 63% 70%,#f3c98bcc,transparent),radial-gradient(2px 2px at 72% 55%,#8ab8ff99,transparent),radial-gradient(3px 3px at 81% 76%,#f3c98b,transparent),radial-gradient(2px 2px at 90% 58%,#f3c98baa,transparent),
+ linear-gradient(180deg,transparent,#0a0c14 70%);filter:blur(1.2px)}
+.ridge{position:absolute;z-index:-2;left:-5%;right:-5%;bottom:-2px;height:22%;background:#06080d;clip-path:polygon(0 60%,6% 40%,11% 55%,17% 30%,24% 52%,31% 36%,40% 58%,48% 34%,55% 50%,63% 28%,70% 52%,79% 38%,87% 56%,94% 34%,100% 52%,100% 100%,0 100%)}
+.grain{position:absolute;inset:0;z-index:-1;opacity:.12;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>")}
+.vig{position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 40% 45%,transparent 40%,#000a 100%)}
+#dust{position:absolute;inset:0;z-index:-1;width:100%;height:100%;pointer-events:none}
+.hero .eyebrow{font:500 12px var(--mono);letter-spacing:5px;color:var(--lamp);display:flex;align-items:center;gap:14px}
+.hero .eyebrow i{width:46px;height:1px;background:var(--lamp);opacity:.6}
+.hero h1{font:400 clamp(38px,5.4vw,80px)/1.02 var(--serif);letter-spacing:-.02em;margin:26px 0 24px;max-width:11.5em}
+.hero h1 em{font-style:italic;color:var(--lamp)}
+.hero p.sub{font-size:clamp(17px,1.6vw,21px);color:#cfd0d4;max-width:30em;margin:0 0 34px}
+.hero .acts{display:flex;gap:12px;flex-wrap:wrap}
+.scroll{position:absolute;left:6vw;bottom:28px;font:500 10px var(--mono);letter-spacing:4px;color:var(--dim);display:flex;align-items:center;gap:12px}.scroll i{width:1px;height:34px;background:linear-gradient(var(--lamp),transparent);animation:sc 2.4s infinite}@keyframes sc{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+/* PHONE */
+.stage{position:relative;display:grid;place-items:center;min-height:520px}
+.ripples{position:absolute;width:300px;height:300px;left:50%;top:50%;transform:translate(-50%,-50%)}
+.ripples i{position:absolute;inset:0;border-radius:50%;border:1px solid #f3c98b88;animation:rip 4.2s linear infinite;opacity:0}.ripples i:nth-child(2){animation-delay:1.4s}.ripples i:nth-child(3){animation-delay:2.8s}
+@keyframes rip{0%{transform:scale(.55);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+.phone{position:relative;width:250px;height:500px;border-radius:42px;padding:10px;background:linear-gradient(145deg,#2a2f3d,#0e1119);box-shadow:0 60px 90px -30px #000,0 0 0 1px #ffffff1c inset,0 0 120px -20px #f3c98b55;transform:rotate(-4deg);animation:buzz 4.2s infinite;will-change:transform}
+@keyframes buzz{0%,100%{transform:rotate(-4deg)}6%{transform:rotate(-4.8deg)}12%{transform:rotate(-3.4deg)}20%{transform:rotate(-4deg)}}
+.screen{height:100%;border-radius:33px;background:linear-gradient(180deg,#10162a,#0a0d18);overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;padding:56px 18px 30px;text-align:center}
+.screen:before{content:"";position:absolute;top:12px;left:50%;width:80px;height:22px;border-radius:20px;background:#000;transform:translateX(-50%)}
+.screen .who{font:400 12px var(--mono);letter-spacing:3px;color:var(--dim)}.screen .nm{font:400 26px var(--serif);margin:10px 0 2px}.screen .sb{font-size:12px;color:var(--dim)}
+.screen .av{width:92px;height:92px;border-radius:50%;margin:34px 0 14px;position:relative;background:#1a2036;box-shadow:0 0 0 1px #ffffff1a}
+.screen .av img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;opacity:0;animation:ans 8.4s infinite}
+.screen .av span{position:absolute;inset:0;display:grid;place-items:center;font:400 34px var(--serif);color:#6b7590;animation:ans2 8.4s infinite}
+@keyframes ans{0%,45%{opacity:0}55%,92%{opacity:1}100%{opacity:0}}@keyframes ans2{0%,45%{opacity:1}55%,92%{opacity:0}100%{opacity:1}}
+.screen .st{width:100%;position:relative;height:40px;font-size:13px;color:#cfd0d4}.screen .st b{position:absolute;left:0;right:0;text-align:center;font-weight:500;animation:sa 8.4s infinite}.screen .st b+b{animation-name:sb}
+@keyframes sa{0%,45%{opacity:1}52%,100%{opacity:0}}@keyframes sb{0%,48%{opacity:0}56%,92%{opacity:1}100%{opacity:0}}
+.screen .row{margin-top:auto;display:flex;gap:36px}.screen .row i{width:54px;height:54px;border-radius:50%;display:block}.screen .row i:first-child{background:#3b2428;box-shadow:0 0 0 1px #f08a8a44 inset}.screen .row i:last-child{background:#1c3a2c;box-shadow:0 0 24px #7fd6a855,0 0 0 1px #7fd6a888 inset;animation:ringp 1.4s infinite}
+@keyframes ringp{50%{box-shadow:0 0 6px #7fd6a833,0 0 0 1px #7fd6a888 inset}}
+.clockbig{position:absolute;right:-2%;bottom:-6%;font:200 clamp(70px,12vw,170px)/1 var(--mono);color:#ffffff0d;letter-spacing:-.04em;user-select:none;pointer-events:none}
+/* SECTIONS */
+section{position:relative;padding:130px 6vw}
+.k{font:500 11px var(--mono);letter-spacing:5px;color:var(--lamp);text-transform:uppercase}
+h2{font:400 clamp(32px,4.6vw,62px)/1.06 var(--serif);letter-spacing:-.015em;margin:18px 0 20px;max-width:15em}
+.lead{color:#b4b9c4;font-size:clamp(17px,1.5vw,20px);max-width:36em}
+.rv{opacity:0;transform:translateY(34px);transition:opacity 1.1s cubic-bezier(.2,.7,.2,1),transform 1.1s cubic-bezier(.2,.7,.2,1)}.rv.in{opacity:1;transform:none}
+/* NIGHT: sticky clock + chapters */
+.night{display:grid;grid-template-columns:minmax(220px,.8fr) 1.4fr;gap:6vw;background:linear-gradient(180deg,var(--bg),#0b0f1b 40%,var(--bg))}
+.night .side{position:sticky;top:130px;align-self:start}
+.night .tm{font:200 clamp(64px,9vw,130px)/1 var(--mono);letter-spacing:-.05em;margin:34px 0 10px;background:linear-gradient(180deg,#fff3da,#e0a95e);-webkit-background-clip:text;background-clip:text;color:transparent;transition:opacity .3s}
+.night .tick{display:flex;gap:6px;margin-top:20px}.night .tick i{height:3px;width:34px;background:#ffffff1c;border-radius:3px;transition:background .5s,width .5s}.night .tick i.on{background:var(--lamp);width:56px}
+.chaps{display:flex;flex-direction:column;gap:0}
+.chap{min-height:56vh;display:flex;flex-direction:column;justify-content:center;padding:30px 0 30px 34px;border-left:1px solid var(--line);opacity:.5;transition:opacity .6s,border-color .6s}
+.chap.on{opacity:1;border-color:var(--lamp)}
+.chap h3{font:400 clamp(28px,3.2vw,44px)/1.1 var(--serif);margin:0 0 14px;letter-spacing:-.01em}.chap p{margin:0;color:#c3c7d0;max-width:30em;font-size:18px}
+.chap .t{font:500 11px var(--mono);letter-spacing:4px;color:var(--lamp);margin-bottom:12px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:34em}.pair div{padding:16px 18px;border-radius:16px;background:#ffffff08;box-shadow:0 0 0 1px #ffffff10 inset;color:#c3c7d0;font-size:16px;line-height:1.4}.pair b{display:block;font:400 21px var(--serif);color:var(--ink);margin-bottom:4px}
+.pull{margin-top:22px;padding-left:18px;border-left:2px solid var(--lamp);font:italic 400 clamp(19px,2vw,25px)/1.35 var(--serif);color:#f0e2c8;max-width:22em}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;max-width:30em;position:relative}.steps li{display:flex;gap:16px;align-items:center;padding:12px 0;font-size:18px;color:#dadce2}.steps i{font:500 12px var(--mono);font-style:normal;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--lamp);box-shadow:0 0 0 1px #f3c98b66;background:#f3c98b11;flex:none}
+.crew{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;max-width:34em}.crew li{display:grid;grid-template-columns:46px 70px 1fr;gap:14px;align-items:center;padding:10px 16px 10px 10px;border-radius:40px;background:#ffffff08;box-shadow:0 0 0 1px #ffffff10 inset}.crew img{width:46px;height:46px;border-radius:50%;object-fit:cover}.crew b{font:400 20px var(--serif)}.crew span{color:#b9bec9;font-size:14.5px;line-height:1.35}
+.stop{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.stop span{padding:9px 16px;border-radius:30px;font:500 12px var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--lamp);box-shadow:0 0 0 1px #f3c98b55 inset;background:#f3c98b10}
+.kn{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:34em}.kn div{padding:18px;border-radius:18px;background:#ffffff08;box-shadow:0 0 0 1px #ffffff10 inset;color:#b9bec9;font-size:14px;line-height:1.3}.kn b{display:block;font:200 56px/1 var(--serif);color:var(--lamp);margin-bottom:4px}
+.facts{margin-top:56px;max-width:1100px;border-top:1px solid var(--line)}.facts summary{cursor:pointer;padding:16px 0;font:500 11px var(--mono);letter-spacing:4px;color:var(--dim);text-transform:uppercase}.facts dl{display:grid;grid-template-columns:150px 1fr;gap:0;margin:0 0 10px}.facts dt{padding:12px 0;border-top:1px solid var(--line);font:500 11px var(--mono);letter-spacing:2px;color:var(--lamp);text-transform:uppercase}.facts dd{margin:0;padding:10px 0;border-top:1px solid var(--line);color:#b4b9c4;font-size:14.5px}
+@media(max-width:900px){.pair,.kn{grid-template-columns:1fr}.crew li{grid-template-columns:42px 1fr;border-radius:22px}.crew li span{grid-column:2}.crew li b{grid-column:2}.facts dl{grid-template-columns:1fr}.facts dt{border-bottom:0;padding-bottom:0}.facts dd{border-top:0}}
+/* ORG */
+.org{background:radial-gradient(900px 500px at 50% 40%,#1a2140aa,transparent 70%),var(--bg);overflow:hidden}
+.mapw{overflow-x:auto;margin:0 -22px;padding:0 22px}.map{position:relative;width:100%;max-width:1180px;margin:60px auto 0;aspect-ratio:1000/520}
+.map svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.map path.e{fill:none;stroke:#ffffff22;stroke-width:1.2;stroke-dasharray:2 7;stroke-linecap:round}
+.map circle.p{fill:#fff3d8;filter:drop-shadow(0 0 6px #f3c98b) drop-shadow(0 0 14px #f3c98b)}
+.nd{position:absolute;transform:translate(-50%,-50%);width:clamp(54px,9.4%,98px);aspect-ratio:1;border:0;padding:0;background:none;cursor:pointer;color:inherit;font:inherit;border-radius:50%}
+.nd .pic{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:#1a2036;box-shadow:0 20px 34px -10px #000,0 0 0 1px #ffffff22,0 0 0 5px #ffffff08;transition:box-shadow .4s,transform .4s}
+.nd .pic img{width:100%;height:100%;object-fit:cover;display:block}
+.nd:hover .pic,.nd.sel .pic{transform:scale(1.08);box-shadow:0 26px 40px -10px #000,0 0 0 2px var(--lamp),0 0 0 9px #f3c98b22,0 0 60px -6px #f3c98baa}
+.nd .lb{position:absolute;top:104%;left:50%;transform:translateX(-50%);white-space:nowrap;text-align:center;line-height:1.25}
+.nd .lb b{display:block;font:400 clamp(13px,1.5vw,19px) var(--serif)}.nd .lb small{font:500 clamp(7px,.8vw,10px) var(--mono);letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+.nd.human .pic{display:grid;place-items:center;font:400 clamp(20px,3vw,34px) var(--serif);color:#2a1c05;background:linear-gradient(145deg,#f7dcae,#d49a4c);box-shadow:0 0 0 1px #fff4 inset,0 0 50px -4px #f3c98b99,0 20px 34px -10px #000}
+.nd.fam .pic{display:grid;place-items:center;font:400 clamp(18px,2.6vw,30px) var(--serif);color:#6b7590}
+.lane{position:absolute;top:-4%;font:500 10px var(--mono);letter-spacing:4px;color:#6d788b;transform:translateX(-50%);text-transform:uppercase;white-space:nowrap}
+.bio{margin:96px auto 0;max-width:1100px;display:grid;grid-template-columns:minmax(260px,420px) 1fr;gap:5vw;align-items:center}
+.vid{position:relative;aspect-ratio:1;border-radius:26px;overflow:hidden;background:#141a2c;box-shadow:0 50px 80px -30px #000,0 0 0 1px #ffffff18;cursor:pointer}
+.vid img,.vid video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.vid video{opacity:0;transition:opacity .4s}.vid.playing video{opacity:1}
+.vid:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,#000a)}
+.vid .play{position:absolute;z-index:2;left:18px;bottom:18px;display:flex;align-items:center;gap:10px;font:600 13px var(--sans);color:#fff;background:#00000066;border:1px solid #ffffff40;border-radius:30px;padding:9px 16px 9px 12px;backdrop-filter:blur(8px)}
+.vid .play:before{content:"";border-left:10px solid #fff;border-top:6px solid transparent;border-bottom:6px solid transparent}
+.vid.playing .play:before{border:0;width:10px;height:12px;border-left:3px solid #fff;border-right:3px solid #fff}
+.bio .rl{font:500 11px var(--mono);letter-spacing:4px;color:var(--lamp);text-transform:uppercase}.bio h3{font:400 clamp(38px,5vw,68px)/1 var(--serif);margin:12px 0 14px;letter-spacing:-.02em}.bio p{color:#c3c7d0;font-size:19px;max-width:26em}.bio small{display:block;margin-top:18px;color:var(--dim);font-size:12.5px;max-width:34em}
+.fine{color:var(--dim);font-size:12.5px;max-width:52em;margin-top:56px}
+/* GATE */
+.gate{background:radial-gradient(700px 420px at 50% 55%,#3a2a1555,transparent 70%),var(--bg);text-align:center}
+.gate h2,.gate .lead{margin-left:auto;margin-right:auto}
+.sheet{position:relative;max-width:760px;margin:60px auto 0;padding:40px;border-radius:30px;text-align:left;background:linear-gradient(160deg,#ffffff12,#ffffff04);box-shadow:0 0 0 1px #f3c98b55 inset,0 0 120px -20px #f3c98b66,0 60px 100px -40px #000;backdrop-filter:blur(18px)}
+.sheet:before{content:"";position:absolute;inset:-1px;border-radius:30px;padding:1px;background:conic-gradient(from var(--a,0deg),transparent 70%,#f3c98b,transparent);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:spin 6s linear infinite}
+@property --a{syntax:'<angle>';initial-value:0deg;inherits:false}@keyframes spin{to{--a:360deg}}
+.sheet .h{display:flex;align-items:center;gap:10px;font:500 11px var(--mono);letter-spacing:4px;color:var(--lamp);text-transform:uppercase}.sheet .h i{width:8px;height:8px;border-radius:50%;background:var(--lamp);box-shadow:0 0 14px var(--lamp);animation:breathe 2s infinite}@keyframes breathe{50%{opacity:.35}}
+.sheet ul{list-style:none;margin:22px 0 32px;padding:0}.sheet li{display:flex;gap:16px;padding:13px 0;border-top:1px solid var(--line);color:#d8d9de;font-size:16px}.sheet li:first-child{border:0}.sheet li span{font:500 11px var(--mono);color:var(--sage);letter-spacing:2px;min-width:78px;padding-top:4px}
+.dec{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.hold{position:relative;border:0;cursor:pointer;color:#06210f;font:700 16px var(--sans);padding:0;border-radius:50px;overflow:hidden;background:linear-gradient(180deg,#b6efd0,#6fcf9b);height:58px;min-width:250px;box-shadow:0 18px 40px -12px #6fcf9bcc;user-select:none;-webkit-user-select:none;touch-action:none}
+.hold b{position:relative;z-index:2;font-weight:700}.hold i{position:absolute;left:0;top:0;bottom:0;width:0;background:#2fa66a;z-index:1}
+.hold.run i{width:100%;transition:width 1.1s linear}
+.deny{font:600 15px var(--sans);color:var(--rose);text-decoration:none;padding:16px 22px;border-radius:50px;box-shadow:0 0 0 1px #f08a8a55 inset}.deny:hover{background:#f08a8a14}
+.sheet .note{margin:20px 0 0;color:var(--dim);font-size:13px}
+/* SCORECARD */
+.card{background:linear-gradient(180deg,#0b0f1b,var(--bg))}
+.tal{display:flex;align-items:flex-end;gap:clamp(22px,5vw,70px);margin:50px 0 26px;flex-wrap:wrap}.tal div{font:500 11px var(--mono);letter-spacing:4px;color:var(--dim)}.tal b{display:block;font:200 clamp(64px,9vw,130px)/.95 var(--serif);letter-spacing:-.04em;color:var(--ink);margin-bottom:6px}
+.tal .REAL b{color:var(--sage)}.tal .EXTERNAL b{color:var(--sky)}.tal .FALLBACK b{color:var(--lamp)}
+.bar{display:flex;height:6px;gap:3px;margin-bottom:70px;max-width:1100px}.bar i{border-radius:6px;display:block}.bar i.REAL{background:var(--sage)}.bar i.EXTERNAL{background:var(--sky)}.bar i.SIMULATED{background:#5b6477}.bar i.FALLBACK{background:var(--lamp)}
+.sr{display:grid;grid-template-columns:34px 170px 1fr 110px;gap:14px;align-items:baseline;padding:20px 0;border-top:1px solid var(--line);max-width:1100px;transition:background .3s}
+.sr:hover{background:#ffffff05}
+.sr .d{width:9px;height:9px;border-radius:50%;background:#5b6477;align-self:center;justify-self:center}.sr.REAL .d{background:var(--sage);box-shadow:0 0 12px var(--sage)}.sr.EXTERNAL .d{background:var(--sky);box-shadow:0 0 12px var(--sky)}.sr.FALLBACK .d{background:var(--lamp)}
+.sr b{font:400 24px var(--serif)}.sr span.w{color:#b4b9c4;font-size:15px}.sr em{font:500 11px var(--mono);letter-spacing:3px;font-style:normal;text-align:right;color:var(--dim)}.sr.REAL em{color:var(--sage)}.sr.EXTERNAL em{color:var(--sky)}
+.sr:last-of-type{border-bottom:1px solid var(--line)}
+/* CTA */
+.cta{text-align:center;padding:150px 6vw 110px;background:radial-gradient(800px 420px at 50% 100%,#3a2a1566,transparent 70%)}.cta h2{margin:18px auto 24px;max-width:13em}.cta .acts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+footer{border-top:1px solid var(--line);padding:30px 6vw;color:var(--dim);font-size:12.5px;display:flex;gap:20px;justify-content:space-between;flex-wrap:wrap}
+@media(max-width:900px){.map{min-width:760px}.moon{display:none}nav{padding:12px 18px;gap:14px}nav a.l{display:none}.hero{grid-template-columns:1fr;padding:130px 22px 80px;gap:50px}.stage{min-height:440px}.phone{width:210px;height:420px}.night{grid-template-columns:1fr;gap:0}.night .side{position:sticky;top:76px;z-index:5;background:#07090fee;padding:10px 0;margin:0 -22px;padding-left:22px;backdrop-filter:blur(10px)}.night .tm{font-size:54px;margin:8px 0 4px}.chap{min-height:42vh;padding-left:22px}section{padding:90px 22px}.bio{grid-template-columns:1fr;gap:28px}.sr{grid-template-columns:20px 1fr;gap:4px 12px}.sr span.w,.sr em{grid-column:2;text-align:left}.sheet{padding:26px 20px}.scroll{display:none}.hold{width:100%}.nd .lb small{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
 </style>
 <div class=banner>FICTIONAL DATA. Every family, call and number here is invented. Sponsor modes are as recorded in the demo run: REAL / EXTERNAL / SIMULATED / FALLBACK. No real person is involved.</div>
-<nav><b>Vigil</b><a href=#story>The night</a><a href=#team>The six</a><a href=#gate>The gate</a><a href=#honest>Honest scorecard</a><a class="btn go" style="padding:8px 16px;font-size:14px" href="dashboard.html?autostart=1">Watch it live</a></nav>
-<header class=hero><div><div class=glow></div><div class=clock id=ck>2:07 AM</div>
-<h1>When the phone rings at 2 AM, someone should answer.</h1>
-<p class=sub>Vigil is AI night staff for family-owned funeral homes. Six AI employees work the case through the night. One human Director says yes before anything reaches a family.</p>
-<a class="btn go" href="dashboard.html?autostart=1">Watch the night shift</a> <button class="btn alt" id=nb>&#128266; Hear the story (60s, AI voice)</button> <a class="btn alt" href="dashboard.html">Open the dashboard</a></div></header>
+<nav id=nav><a class=logo href=#top>Vigil</a><a class=l href=#night>The night</a><a class=l href=#team>The six</a><a class=l href=#gate>The gate</a><a class=l href=#honest>Scorecard</a><a class="btn go sm" href="dashboard.html?autostart=1">Watch it live</a></nav>
 
-<section id=story><h2 class=rv>One night. One case.</h2><p class="lead rv">A funeral home is a family business that never gets to close. The calls come at the worst hours, from people at the worst moment of their lives.</p>
-<div class="chap rv"><div class=t>2:07 AM</div><div><h3>A daughter calls.</h3><p>Her father has just died at home. She does not know who to call or what to say. At most homes this goes to voicemail, and the family calls the next name on the list.</p></div></div>
-<div class="chap rv"><div class=t>2:10 AM</div><div><h3>Mara answers.</h3><p>She is the intake agent. She listens, classifies the call, and hands a structured brief to the back office. The caller's words are never passed along, only the facts the next agent needs.</p></div></div>
-<div class="chap rv"><div class=t>2:11 AM</div><div><h3>Four agents work in parallel.</h3><p>Quinn quotes from the General Price List. Sol plans the callback and the removal team's standby. Paige pre-fills the paperwork and leaves the family's fields blank. Vera checks every word of the family message for compliance. Each handoff carries its evidence.</p></div></div>
-<div class="chap rv"><div class=t>2:14 AM</div><div><h3>Everything stops at a gate.</h3><p>Faye drafts a careful message to the family. Nothing is sent, and nothing is dispatched, until the human Director approves. A no is final.</p></div></div>
-<div class="chap rv"><div class=t>6:40 AM</div><div><h3>The Director wakes to a finished case.</h3><p>A quote range, a callback time, paperwork ready, a message waiting for one tap. Not a night of scrambling.</p></div></div></section>
+<header class=hero id=top>
+<div class=sky data-p=.08></div><div class=moon data-p=.18></div><div class=city data-p=.3></div><div class=ridge></div><canvas id=dust></canvas><div class=vig></div><div class=grain></div>
+<div class=copy><div class=eyebrow><i></i><span id=ck>2:07 AM</span></div>
+<h1>When the phone rings at 2 AM, <em>someone should answer.</em></h1>
+<p class=sub>Vigil is AI night staff for family-owned funeral homes. Six AI employees work the case through the dark hours. One human Director says yes before anything reaches a family.</p>
+<div class=acts><a class="btn go" href="dashboard.html?autostart=1">Watch the night shift</a><button class="btn ghost" id=nb>Hear the story (60s, AI voice)</button></div></div>
+<div class=stage data-p=-.06><div class=ripples><i></i><i></i><i></i></div>
+<div class=phone><div class=screen><div class=who>NIGHT LINE</div><div class=nm>Maple Grove</div><div class=sb>Funeral Home (fictional)</div>
+<div class=av><span>?</span><img src="img/mara.jpg" alt="Mara, the intake agent"></div>
+<div class=st><b>Incoming call 2:07 AM</b><b>Mara is answering</b></div><div class=row><i></i><i></i></div></div></div></div>
+<div class=clockbig aria-hidden=true>02:07</div>
+<div class=scroll><i></i>SCROLL</div>
+</header>
 
-<section id=team><h2 class=rv>Six employees. Each with a job, a face and a voice.</h2><p class="lead rv">Front office: Mara and Faye. Back office: Quinn, Sol, Paige and Vera. All report to the Director. Tap a portrait to watch them speak.</p>
-<div class=team>__TEAM__</div>
-<p class=lead style="font-size:13px;margin-top:14px">Portraits are generated in Masky. The talking clips are Masky avatar videos with Masky preset voices. The in-page voice lines and the narration are OpenAI TTS. Everything is AI-generated and fictional, and the clips are not a runtime API call.</p></section>
+<section class=night id=night><div class=side><div class=k>One night, one case</div><div class=tm id=tm>2:07</div><div class=tick id=tick><i class=on></i><i></i><i></i><i></i><i></i></div></div>
+<div class=chaps>
+<div class=chap data-t="2:07" data-i=0><div class=t>2:07 AM</div><h3>A daughter calls.</h3>
+<div class=pair><div><b>Her father</b>has just died at home.</div><div><b>She doesn't know</b>who to call or what to say.</div></div>
+<div class=pull>At most homes this goes to voicemail, and the family calls the next name on the list.</div></div>
+<div class=chap data-t="2:10" data-i=1><div class=t>2:10 AM</div><h3>Mara answers.</h3>
+<ol class=steps><li><i>1</i>Listens</li><li><i>2</i>Classifies the call</li><li><i>3</i>Hands a structured brief to the back office</li></ol>
+<div class=pull>Only the facts the next agent needs. Never the caller's words.</div></div>
+<div class=chap data-t="2:11" data-i=2><div class=t>2:11 AM</div><h3>Four agents work in parallel.</h3>
+<ul class=crew><li><img src="img/quinn.jpg" alt=""><b>Quinn</b><span>Quotes from the General Price List</span></li><li><img src="img/sol.jpg" alt=""><b>Sol</b><span>Plans the callback and the removal team's standby</span></li><li><img src="img/paige.jpg" alt=""><b>Paige</b><span>Pre-fills the paperwork, leaves the family's fields blank</span></li><li><img src="img/vera.jpg" alt=""><b>Vera</b><span>Checks every word of the family message for compliance</span></li></ul>
+<div class=pull>Each handoff carries its evidence.</div></div>
+<div class=chap data-t="2:14" data-i=3><div class=t>2:14 AM</div><h3>Everything stops at a gate.</h3>
+<ul class=crew><li><img src="img/faye.jpg" alt=""><b>Faye</b><span>Drafts a careful message to the family</span></li></ul>
+<div class=stop><span>Nothing is sent</span><span>Nothing is dispatched</span><span>Until the human Director approves</span></div>
+<div class=pull>A no is final.</div></div>
+<div class=chap data-t="6:40" data-i=4><div class=t>6:40 AM</div><h3>The Director wakes to a finished case.</h3>
+<div class=kn><div><b>1</b>quote range</div><div><b>1</b>callback time</div><div><b>1</b>paperwork packet, ready</div><div><b>1</b>message, waiting for one tap</div></div>
+<div class=pull>Not a night of scrambling.</div></div>
+</div></section>
 
-<section id=gate><h2 class=rv>The moment that matters.</h2><p class="lead rv">Vigil is built around one rule: the agents prepare, the human decides.</p>
-<div class="gate rv"><b style="font:400 24px Georgia,serif">Waiting on the Director</b><ul><li>Family message drafted by Faye, passed Vera's compliance lint</li><li>Quote from the price list, shown as informational</li><li>Callback planned for the morning, paperwork pre-filled</li><li>Removal-team dispatch ticket, held until you decide</li></ul>
-<div class=b><a class="btn ap" href="dashboard.html?autostart=1">Approve (watch the full case)</a><a class="btn dn" href="dashboard.html?autostart=1&deny=1">Deny (watch nothing get sent)</a></div></div></section>
+<section class=org id=team><div class=k>The staff</div><h2 class=rv>Six employees. A job, a face and a voice each.</h2><p class="lead rv">Front office: Mara and Faye. Back office: Quinn, Sol, Paige and Vera. Everything flows toward one human. Select a portrait to meet them.</p>
+<div class=mapw><div class="map rv" id=map>
+<svg viewBox="0 0 1000 520" preserveAspectRatio="none" id=wires>
+<path class=e id=w0 d="M70 260 C140 260 170 260 230 260"/><path class=e id=w1 d="M230 260 C330 260 380 90 480 90"/><path class=e id=w2 d="M230 260 C330 260 380 260 480 260"/><path class=e id=w3 d="M230 260 C330 260 380 430 480 430"/>
+<path class=e id=w4 d="M480 90 C600 90 620 160 730 150"/><path class=e id=w5 d="M480 260 C600 260 620 160 730 150"/><path class=e id=w6 d="M480 430 C600 430 620 380 730 380"/><path class=e id=w7 d="M480 260 C600 260 620 380 730 380"/>
+<path class=e id=w8 d="M730 150 C820 150 850 250 930 260"/><path class=e id=w9 d="M730 380 C820 380 850 270 930 260"/>
+</svg>
+<span class=lane style="left:7%">Family</span><span class=lane style="left:23%">Front office</span><span class=lane style="left:48%">Back office</span><span class=lane style="left:73%">Check and draft</span><span class=lane style="left:93%">Human</span>
+<button class="nd fam" style="left:7%;top:50%" tabindex=-1><span class=pic>C</span><span class=lb><b>Caller</b><small>the family</small></span></button>
+<button class=nd data-n=Mara style="left:23%;top:50%"><span class=pic><img src="img/mara.jpg" alt=Mara></span><span class=lb><b>Mara</b><small>Intake</small></span></button>
+<button class=nd data-n=Quinn style="left:48%;top:17.3%"><span class=pic><img src="img/quinn.jpg" alt=Quinn></span><span class=lb><b>Quinn</b><small>Quoter</small></span></button>
+<button class=nd data-n=Sol style="left:48%;top:50%"><span class=pic><img src="img/sol.jpg" alt=Sol></span><span class=lb><b>Sol</b><small>Scheduler</small></span></button>
+<button class=nd data-n=Paige style="left:48%;top:82.7%"><span class=pic><img src="img/paige.jpg" alt=Paige></span><span class=lb><b>Paige</b><small>Paperwork</small></span></button>
+<button class=nd data-n=Vera style="left:73%;top:28.8%"><span class=pic><img src="img/vera.jpg" alt=Vera></span><span class=lb><b>Vera</b><small>Compliance</small></span></button>
+<button class=nd data-n=Faye style="left:73%;top:73%"><span class=pic><img src="img/faye.jpg" alt=Faye></span><span class=lb><b>Faye</b><small>Family liaison</small></span></button>
+<button class="nd human" style="left:93%;top:50%" tabindex=-1><span class=pic>D</span><span class=lb><b>Director</b><small>Human</small></span></button>
+</div></div>
+<div class=bio id=bio><div class=vid id=vid><img id=bimg src="img/mara.jpg" alt=""><video id=bvid playsinline preload=none></video><span class=play id=bplay>Hear <span id=bpn>Mara</span></span></div>
+<div><div class=rl id=brl></div><h3 id=bn></h3><p id=bp></p><small>LLM-driven (gpt-4o-mini). Portrait and clip: Masky, AI-generated and fictional.</small></div></div>
+<div id=roster hidden>__TEAM__</div>
+<details class=facts><summary>How the cast was made</summary><dl><dt>Portraits</dt><dd>Generated in Masky. AI-generated and fictional.</dd><dt>Talking clips</dt><dd>Masky avatar videos with Masky preset voices. Not a runtime API call.</dd><dt>Voice lines, narration</dt><dd>OpenAI TTS.</dd><dt>Decisions</dt><dd>LLM-driven (gpt-4o-mini), one decision plus a short in-character line each.</dd></dl></details></section>
 
-<section id=honest><h2 class=rv>The honest scorecard.</h2><p class="lead rv">Twelve sponsor tools, each labeled by what actually happened in the recorded run. Real means we called the vendor and it answered. Simulated means there is no integration.</p>
-<div class=tally>__TALLY__</div>
-<table class=score><tr><th>Tool</th><th>Mode</th><th>What it did</th></tr>__SCORE__</table>
-<p class=lead style="font-size:14px;margin-top:16px">The dashboard replays two recorded runs (approve and deny). Prices, gates, callback times and approvals are deterministic code; the models only propose enum-validated choices and a short in-character line. 103 automated tests. OpenAI is the only model provider, under a $3 hard cap.</p></section>
+<section class=gate id=gate><div class=k>The moment that matters</div><h2 class=rv>The moment that matters.</h2><p class="lead rv">Vigil is built around one rule: the agents prepare, the human decides.</p>
+<div class="sheet rv"><div class=h><i></i>Waiting on the Director</div>
+<ul><li><span>DRAFTED</span>Family message from Faye, passed Vera's compliance lint</li><li><span>QUOTED</span>Price range from the General Price List, shown as informational</li><li><span>PLANNED</span>Morning callback, paperwork pre-filled, family fields left blank</li><li><span>HELD</span>Removal-team dispatch ticket, until you decide</li></ul>
+<div class=dec><button class=hold id=hold aria-label="Press and hold to approve"><i></i><b>Hold to approve</b></button><a class=deny href="dashboard.html?autostart=1&deny=1">Deny, and watch nothing get sent</a></div>
+<p class=note>Approving opens the full recorded case. The dashboard replays recorded runs; the approve and deny buttons there are the real gate in the replay.</p></div></section>
 
-<div class=cta><h2 class="serif rv" style="font-size:clamp(28px,4vw,46px);font-weight:400">The night shift that never skips the Director.</h2><p class=lead style="margin:0 auto 26px">See it work, hand off by hand off.</p>
-<a class="btn go" href="dashboard.html?autostart=1">Watch the night shift</a> <a class="btn alt" href="https://github.com/donaldc11/vigil-ai-night-staff">GitHub repo</a> <a class="btn alt" href="https://github.com/donaldc11/vigil-ai-night-staff/blob/main/COMPLIANCE_MATRIX.md">Compliance matrix</a></div>
-<footer>Vigil, built for the Universal Celebration Hackathon. Fictional data. Portraits, clips and voices are AI-generated. Maple Grove Funeral Home is invented.</footer>
+<section class=card id=honest><div class=k>Scorecard</div><h2 class=rv>The honest scorecard.</h2><p class="lead rv">Twelve sponsor tools, each labeled by what happened in the recorded run. Real means we called the vendor and it answered. External means the evidence lives in the repo. Simulated means there is no integration.</p>
+__TALLY__
+__SCORE__
+<details class=facts open><summary>How to read this</summary><dl><dt>Replay</dt><dd>The dashboard replays two recorded runs, approve and deny.</dd><dt>Deterministic code</dt><dd>Prices, gates, callback times and approvals. Models only propose enum-validated choices and a short in-character line.</dd><dt>Tests</dt><dd>103 automated tests.</dd><dt>Model spend</dt><dd>OpenAI is the only model provider, under a $3 hard cap.</dd></dl></details></section>
+
+<div class=cta><div class=k>Vigil</div><h2 class=rv>The night shift that never skips the Director.</h2><p class=lead style="margin:0 auto">See it work, handoff by handoff.</p>
+<div class=acts><a class="btn go" href="dashboard.html?autostart=1">Watch the night shift</a><a class="btn ghost" href="https://github.com/donaldc11/vigil-ai-night-staff">GitHub repo</a><a class="btn ghost" href="https://github.com/donaldc11/vigil-ai-night-staff/blob/main/COMPLIANCE_MATRIX.md">Compliance matrix</a></div></div>
+<footer><span>Vigil, built for the Universal Celebration Hackathon.</span><span>Fictional data. Portraits, clips and voices are AI-generated. Maple Grove Funeral Home is invented.</span></footer>
 <script>
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.15});document.querySelectorAll('.rv').forEach(x=>io.observe(x));
-let a=null;nb.onclick=()=>{if(!a)a=new Audio('narration.mp3');if(a.paused){a.play();nb.innerHTML='&#9208; Pause the story'}else{a.pause();nb.innerHTML='&#128266; Hear the story (60s, AI voice)'}};
-function tc(n){const c=document.getElementById('t-'+n),v=c.querySelector('video');if(c.classList.contains('playing')){v.pause();c.classList.remove('playing');return}document.querySelectorAll('.tc.playing').forEach(x=>{x.querySelector('video').pause();x.classList.remove('playing')});if(a)a.pause();v.currentTime=0;v.play();c.classList.add('playing');v.onended=()=>c.classList.remove('playing')}
-const T=['2:07 AM','2:08 AM','2:09 AM','2:10 AM'];let ti=0;setInterval(()=>{ti=(ti+1)%T.length;ck.textContent=T[ti]},2600);
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.12});$$('.rv').forEach(x=>io.observe(x));
+addEventListener('scroll',()=>{const y=scrollY;nav.classList.toggle('s',y>40);if(y<1400)$$('[data-p]').forEach(e=>e.style.transform='translate3d(0,'+(y*e.dataset.p)+'px,0)')},{passive:true});
+/* hero clock */
+const T=['2:07 AM','2:08 AM','2:09 AM','2:10 AM'];let ti=0;setInterval(()=>{ti=(ti+1)%T.length;ck.textContent=T[ti]},2800);
+/* chapters drive the sticky clock */
+const co=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){$$('.chap').forEach(c=>c.classList.remove('on'));e.target.classList.add('on');tm.textContent=e.target.dataset.t;$$('#tick i').forEach((t,i)=>t.classList.toggle('on',i==e.target.dataset.i))}}),{rootMargin:'-42% 0px -42% 0px'});$$('.chap').forEach(c=>co.observe(c));
+/* packets along the wires */
+(function(){const NS='http://www.w3.org/2000/svg',svg=$('#wires');const routes=[[0],[1,4],[2,5],[3,6],[2,7],[4,8],[5,8],[6,9],[7,9]];
+routes.forEach((r,k)=>{const c=document.createElementNS(NS,'circle');c.setAttribute('r',4.5);c.setAttribute('class','p');const m=document.createElementNS(NS,'animateMotion');m.setAttribute('dur',(3.6+k%3*.7)+'s');m.setAttribute('begin','-'+(k*.55+.2)+'s');m.setAttribute('repeatCount','indefinite');m.setAttribute('keyPoints','0;1');m.setAttribute('keyTimes','0;1');m.setAttribute('calcMode','linear');
+const mp=document.createElementNS(NS,'mpath');mp.setAttributeNS('http://www.w3.org/1999/xlink','href','#w'+r[0]);m.appendChild(mp);c.appendChild(m);svg.appendChild(c)})
+})();
+/* bio stage */
+const R={};$$('#roster .ta').forEach(d=>R[d.dataset.n]={role:d.dataset.role,off:d.dataset.off,img:d.dataset.img,txt:d.textContent});
+let a=null;function pick(n){const r=R[n];if(!r)return;$$('.nd').forEach(b=>b.classList.toggle('sel',b.dataset.n==n));bvid.pause();vid.classList.remove('playing');bimg.src='img/'+r.img+'.jpg';bvid.src='clips/'+r.img+'.mp4';bvid.load();bn.textContent=n;brl.textContent=r.role+' / '+r.off;bp.textContent=r.txt;bpn.textContent=n}
+$$('.nd[data-n]').forEach(b=>b.onclick=()=>pick(b.dataset.n));
+vid.onclick=()=>{if(vid.classList.contains('playing')){bvid.pause();vid.classList.remove('playing');return}if(a)a.pause();bvid.currentTime=0;bvid.play();vid.classList.add('playing');bvid.onended=()=>vid.classList.remove('playing')};
+pick('Mara');
+/* narration */
+nb.onclick=()=>{if(!a)a=new Audio('narration.mp3');if(a.paused){a.play();nb.textContent='Pause the story'}else{a.pause();nb.textContent='Hear the story (60s, AI voice)'}};
+/* hold to approve */
+(function(){let t=null;const go=()=>{location.href='dashboard.html?autostart=1'};const on=e=>{e.preventDefault();hold.classList.add('run');t=setTimeout(go,1150)},off=()=>{hold.classList.remove('run');clearTimeout(t)};
+hold.addEventListener('pointerdown',on);['pointerup','pointerleave','pointercancel'].forEach(x=>hold.addEventListener(x,off));hold.addEventListener('keydown',e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();go()}})})();
+/* dust */
+(function(){const c=dust,x=c.getContext('2d');let W,H,P=[];const rs=()=>{W=c.width=c.offsetWidth;H=c.height=c.offsetHeight;P=Array.from({length:Math.round(W/22)},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.6+.3,v:Math.random()*.25+.05,a:Math.random()*.5+.1}))};rs();addEventListener('resize',rs);
+(function f(){x.clearRect(0,0,W,H);P.forEach(p=>{p.y-=p.v;p.x+=Math.sin(p.y/60)*.15;if(p.y<-4){p.y=H+4;p.x=Math.random()*W}x.fillStyle='rgba(243,201,139,'+p.a+')';x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fill()});requestAnimationFrame(f)})()})();
 </script>

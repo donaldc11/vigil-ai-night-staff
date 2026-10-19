@@ -59,14 +59,16 @@ import shutil, html
 os.makedirs("site/img", exist_ok=True)
 for v in AV.values(): shutil.copy(f"avatars/{v}.jpg", f"site/img/{v}.jpg")
 BLURB = {"Mara": "Answers the call, gently, and hands a structured brief to the back office.", "Quinn": "Quotes from the General Price List. Prices always come from the list, never the model.", "Sol": "Plans the overnight callback and the removal team's standby.", "Paige": "Pre-fills the paperwork and leaves the family's own fields blank.", "Faye": "Writes the careful family message, bound to the Director's approval.", "Vera": "Checks every word for compliance and keeps the books: quoted, not invoiced."}
-team = "".join('<div class=tc id=t-%s onclick="tc(\'%s\')"><div class=ph><img src="img/%s.jpg" alt="%s"><video src="clips/%s.mp4" playsinline preload=none></video><button class=play>&#9654; Hear %s</button></div><div class=bd><div class=rl>%s &middot; %s</div><h4>%s</h4><p>%s</p><small>LLM-driven (gpt-4o-mini). Portrait and clip: Masky, AI-generated.</small></div></div>' % (n, n, AV[n], n, AV[n], n, dict(vigil.STAFF)[n], "Front office" if n in ("Mara", "Faye") else "Back office", n, BLURB[n]) for n in AV)
+team = "".join('<div class=ta data-n="%s" data-role="%s" data-off="%s" data-img="%s">%s</div>' % (n, html.escape(dict(vigil.STAFF)[n]), "Front office" if n in ("Mara", "Faye") else "Back office", AV[n], html.escape(BLURB[n])) for n in AV)
 rows = {}
 for c in yes["sponsor_calls"]: rows.setdefault(c["sponsor"], c)
-score = "".join("<tr><td><b>%s</b></td><td><span class='m %s'>%s</span></td><td>%s</td></tr>" % (html.escape(s), c["mode"].upper(), c["mode"].upper(), html.escape(detail(c))) for s, c in sorted(rows.items(), key=lambda kv: ({"real": 0, "external": 1}.get(kv[1]["mode"], 2), kv[0])))
+score = "".join("<div class='sr %s'><span class=d></span><b>%s</b><span class=w>%s</span><em>%s</em></div>" % (c["mode"].upper(), html.escape(s), html.escape(detail(c)), c["mode"].upper()) for s, c in sorted(rows.items(), key=lambda kv: ({"real": 0, "external": 1}.get(kv[1]["mode"], 2), kv[0])))
 modes = [c["mode"] for c in rows.values()]
-tally = "".join("<div><b>%d</b>%s</div>" % (modes.count(m), m.upper()) for m in ("real", "external", "simulated", "fallback") if modes.count(m))
+tally = "<div class=tal>" + "".join("<div class=%s><b>%d</b>%s</div>" % (m.upper(), modes.count(m), m.upper()) for m in ("real", "external", "simulated", "fallback") if modes.count(m)) + "</div><div class=bar>" + "".join("<i class=%s style='flex:%d'></i>" % (m.upper(), modes.count(m)) for m in ("real", "external", "simulated", "fallback") if modes.count(m)) + "</div>"
 land = open("site_landing.html").read().replace("__TEAM__", team).replace("__TALLY__", tally).replace("__SCORE__", score)
 open("site/index.html", "w").write(land)
 for p in ("site/dashboard.html", "demo.html"):
     with open(p, "w") as f: f.write(page)
+# GitHub Pages publishes docs/. Keep generated content in sync with site/.
+shutil.copytree("site", "docs", dirs_exist_ok=True)
 print("built", yes["outcome"], no["outcome"], "gate index", [t["phase"] for t in yes["trace"]].index("approval"))

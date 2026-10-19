@@ -46,6 +46,89 @@ video.clip{display:none;width:100%;grid-column:1/3;border-radius:8px}
 #intro{position:fixed;inset:0;z-index:50;background:radial-gradient(900px 500px at 50% 40%,#18202c,#05070a);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity 1s}
 #intro.gone{opacity:0;pointer-events:none}#intro p{font-size:clamp(20px,3.2vw,34px);line-height:1.4;max-width:760px;margin:10px auto;opacity:0;transition:opacity 1.2s}#intro p.on{opacity:1}#intro .t{font:600 14px ui-monospace,monospace;color:var(--gold);letter-spacing:3px}
 #intro .fine{font-size:12px;color:var(--dim)}
+/* ===== v4 overhaul: layered depth, glass used sparingly, serif hierarchy ===== */
+:root{--bg:#080b12;--panel:#ffffff0a;--line:#ffffff14;--fg:#ecebe6;--dim:#8f98a8;--gold:#f3c98b;--green:#7fd6a8;--blue:#8ab8ff;--red:#f08a8a;--glass:#ffffff0b;--shadow:0 30px 60px -20px #000c,0 2px 0 #ffffff08 inset}
+body{font:15px/1.55 -apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);position:relative;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:-20%;z-index:-1;background:radial-gradient(700px 500px at 15% 10%,#1d2a4a88,transparent 70%),radial-gradient(800px 600px at 90% 30%,#3a203f66,transparent 70%),radial-gradient(900px 700px at 50% 110%,#3a2a1844,transparent 70%);animation:drift 40s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate3d(-3%,2%,0) scale(1.06)}}
+.banner{background:#1a1408;color:#e9c98f;border-bottom:1px solid #f3c98b33;font-weight:500;font-size:12px;letter-spacing:.2px}
+header{border:0;padding:20px 32px 8px;align-items:baseline}
+header h1{font:400 34px Georgia,serif;letter-spacing:.5px}header small{font-size:13px}
+.clock{font:500 13px ui-monospace,monospace;letter-spacing:2px;color:var(--gold)}
+.saved{border:0;background:var(--glass);border-radius:30px;padding:7px 14px}
+button{border-radius:30px;font-weight:600;padding:11px 20px;transition:transform .2s,box-shadow .2s}button:hover:not(:disabled){transform:translateY(-1px)}
+.go{background:linear-gradient(180deg,#f6d9a8,#e7b66e);color:#2a1c05;box-shadow:0 10px 24px -8px #e7b66e88}
+.alt{background:#ffffff12;color:var(--fg);backdrop-filter:blur(8px);box-shadow:0 0 0 1px #ffffff14 inset}
+.deny{background:#ffffff10;color:var(--red);box-shadow:0 0 0 1px #f08a8a55 inset}
+main{max-width:1480px;padding:8px 32px 40px}
+.boardwrap{border:0;border-radius:28px;background:linear-gradient(180deg,#ffffff0d,#ffffff04);box-shadow:var(--shadow);backdrop-filter:blur(14px);position:relative}
+.board{grid-template-rows:repeat(3,160px);padding:38px 20px 20px}
+.lane{top:14px;font:500 10px ui-monospace,monospace;letter-spacing:3px;color:#6d788b}
+svg.lines line{stroke:url(#none);stroke:#ffffff26;stroke-width:1.5;stroke-dasharray:2 7;stroke-linecap:round;animation:flow 2.4s linear infinite}@keyframes flow{to{stroke-dashoffset:-18}}
+.node{width:138px;padding:14px 8px 10px;border-radius:22px;background:linear-gradient(180deg,#ffffff12,#ffffff05);border:0;box-shadow:0 18px 30px -14px #000d,0 0 0 1px #ffffff12 inset;backdrop-filter:blur(10px)}
+.node img,.node .ini{width:62px;height:62px;line-height:62px;box-shadow:0 0 0 3px #ffffff14,0 8px 16px -6px #000a;margin-bottom:8px}
+.node b{font:400 18px Georgia,serif}.node .rl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase}
+.node .st{font-size:11px}
+.node.working{box-shadow:0 0 0 1px #8ab8ff88 inset,0 0 40px -4px #8ab8ff66,0 22px 34px -14px #000d;transform:translateY(-4px) scale(1.04)}
+.node.done{box-shadow:0 0 0 1px #7fd6a844 inset,0 18px 30px -14px #000d}
+.node.waiting{box-shadow:0 0 0 1px #f3c98bcc inset,0 0 60px -2px #f3c98b88,0 22px 34px -14px #000d;animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{50%{box-shadow:0 0 0 1px #f3c98b88 inset,0 0 22px -2px #f3c98b44,0 22px 34px -14px #000d}}
+.node.denied{box-shadow:0 0 0 1px #f08a8a99 inset,0 0 40px -6px #f08a8a66}
+.pkt{width:10px;height:10px;background:#fff3d8;box-shadow:0 0 0 4px #f3c98b44,0 0 18px 6px #f3c98baa,-14px 0 22px 2px #f3c98b55}
+.cols{grid-template-columns:320px 1fr 360px;gap:28px;margin-top:30px}
+h3{font:400 22px Georgia,serif;letter-spacing:0;text-transform:none;color:var(--fg);margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.card{background:var(--glass);border:0;border-radius:16px;padding:12px 14px;box-shadow:0 10px 24px -14px #000c,0 0 0 1px #ffffff0d inset}
+#calls .card{border-radius:12px;margin-bottom:6px}#calls .card b{font:400 17px Georgia,serif}
+.kan{gap:8px}.kcol{background:#00000033;border:0;border-radius:12px;box-shadow:0 0 0 1px #ffffff0a inset}.kcol h4{font:500 9px ui-monospace,monospace;letter-spacing:1.5px}
+.case{background:#ffffff12;border:0;border-left:2px solid var(--blue);border-radius:8px}
+.queue{border:0;border-radius:22px;padding:22px;background:linear-gradient(160deg,#ffffff10,#ffffff04);box-shadow:var(--shadow);margin-top:12px}
+.queue.live{background:linear-gradient(160deg,#3a2c1666,#ffffff06);box-shadow:0 0 0 1px #f3c98baa inset,0 0 70px -10px #f3c98b77,0 30px 60px -20px #000d;animation:breathe 2.8s ease-in-out infinite}
+.queue h3,.queue b:first-child{font:400 22px Georgia,serif}
+.queue ul{font-size:13.5px;color:#d6d4cc;margin-left:18px}.queue li{margin:6px 0}
+.queue button{padding:14px 26px;font-size:15px}
+.queue button.go{background:linear-gradient(180deg,#a8ecc6,#6fcf9b);color:#06210f;box-shadow:0 14px 30px -10px #6fcf9bcc}
+.msg{border:0;border-left:2px solid #ffffff30;border-radius:4px 14px 14px 4px;background:var(--glass);padding:10px 14px;box-shadow:0 8px 18px -12px #000c}
+.msg.handoff{border-left-color:#a58cff;background:transparent;box-shadow:none;font-size:12.5px;color:#a9b1c2}
+.approval{border-left-color:var(--gold)}.check{border-left-color:var(--blue)}.improve{border-left-color:var(--green)}
+.tag{font:500 10px ui-monospace,monospace;letter-spacing:1.5px}
+.av{box-shadow:0 0 0 2px #ffffff18}
+.payoff{border:0;border-radius:22px;background:linear-gradient(150deg,#16302580,#ffffff06);box-shadow:var(--shadow)}.payoff.no{background:linear-gradient(150deg,#3a1d2080,#ffffff06)}.payoff h2{font:400 24px Georgia,serif}
+.wfc{border:0;border-radius:14px;background:var(--glass)}
+.roster{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.roster .card{grid-template-columns:76px 1fr;padding:16px;border-radius:20px;box-shadow:var(--shadow)}.roster img.bigav{width:76px;height:76px;border-radius:50%;box-shadow:0 0 0 3px #ffffff14,0 10px 20px -8px #000a}
+.pl{border-radius:20px;background:#ffffff14}
+#intro{background:radial-gradient(900px 500px at 50% 40%,#1b2540,#04060a)}#intro p{font:400 clamp(22px,3.4vw,38px)/1.35 Georgia,serif}
+@media(max-width:1000px){.cols{grid-template-columns:1fr;gap:22px}header{padding:16px}main{padding:8px 14px 30px}.node{width:112px}}
+
+/* feed as a timeline */
+#feed{max-height:640px;padding:4px 6px 4px 0;scrollbar-width:thin}
+.tl{display:grid;grid-template-columns:22px 1fr;gap:12px;animation:slide .5s}
+.tl .rail{position:relative}.tl .rail:before{content:"";position:absolute;left:10px;top:0;bottom:-2px;width:1px;background:linear-gradient(#ffffff26,#ffffff0a)}.tl .rail i{position:absolute;left:5px;top:14px;width:11px;height:11px;border-radius:50%;background:#0b0e16;box-shadow:0 0 0 2px #8ab8ff88}
+.tl.handoff .rail i{box-shadow:0 0 0 2px #a58cff88;width:9px;height:9px;left:6px}.tl.check .rail i{box-shadow:0 0 0 2px #8ab8ff,0 0 14px #8ab8ff88}.tl.approval .rail i{box-shadow:0 0 0 2px #f3c98b,0 0 18px #f3c98b}.tl.improve .rail i,.tl.books .rail i{box-shadow:0 0 0 2px #7fd6a8}
+.tl .body{padding:8px 0 16px}
+.tl .who{display:flex;align-items:center;gap:10px}.tl .who b{font:400 18px Georgia,serif}.tl .av{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;object-fit:cover;margin:0;background:#1a2036;box-shadow:0 0 0 2px #ffffff18;font:400 14px Georgia,serif;color:#9aa6b6;flex:none}
+.chip{display:inline-block;padding:3px 10px;border-radius:20px;font:500 10px ui-monospace,monospace;letter-spacing:1.4px;text-transform:uppercase;color:#b9c3d6;background:#ffffff10;box-shadow:0 0 0 1px #ffffff12 inset}
+.tl .say{margin-top:8px;padding:12px 16px;border-radius:4px 18px 18px 18px;background:var(--glass);box-shadow:0 10px 22px -14px #000d,0 0 0 1px #ffffff0d inset;font-size:14.5px;color:#e4e3dd}
+.tl .q{margin-top:6px;font-size:12.5px;color:#9aa6b6;padding-left:14px;border-left:1px solid #ffffff22}
+.tl.handoff .body{padding:6px 0 14px}.tl .route{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.tl .route .av{width:26px;height:26px}.tl .route b{font:500 12px ui-monospace,monospace;color:#a9b1c2;margin-left:8px;letter-spacing:.3px}
+.tl .arr{width:26px;height:1px;background:linear-gradient(90deg,#a58cff,#a58cff00);position:relative;margin:0 4px}.tl .arr:after{content:"";position:absolute;right:-1px;top:-3px;border-left:6px solid #a58cff;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent}
+.tl .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.tl .chips .chip{color:#c9bdf5;background:#a58cff14;box-shadow:0 0 0 1px #a58cff33 inset}
+.tl.handoff small{display:block;margin-top:6px;font-size:11.5px;color:#7b8598}
+.tl.approval .say{background:linear-gradient(160deg,#3a2c1666,#ffffff06);box-shadow:0 0 0 1px #f3c98b88 inset;font:400 18px/1.4 Georgia,serif}.tl.approval .chip{color:#f3c98b;background:#f3c98b14;box-shadow:0 0 0 1px #f3c98b55 inset}
+.tl.check .chip{color:#8ab8ff}
+/* the gate: a signature moment */
+.queue{position:relative;overflow:hidden}
+.queue.live:before{content:"THE DIRECTOR'S GATE";display:block;font:500 10px ui-monospace,monospace;letter-spacing:4px;color:#f3c98b;margin-bottom:14px}
+.queue>b{display:block;font:400 28px/1.1 Georgia,serif;margin-bottom:6px}
+.queue.live ul{list-style:none;margin:14px 0 20px;padding:0}.queue.live li{padding:10px 0 10px 22px;border-top:1px solid #ffffff12;position:relative;font-size:13px}.queue.live li:before{content:"";position:absolute;left:2px;top:17px;width:7px;height:7px;border-radius:50%;background:#7fd6a8;box-shadow:0 0 8px #7fd6a8}
+.queue.live li:last-child:before{background:#f3c98b;box-shadow:0 0 8px #f3c98b}
+.queue.live{display:block}.queue button{width:calc(50% - 6px);padding:16px 10px;font-size:15px}.queue button.deny{margin-left:8px}
+/* morning summary and words as separate components */
+.payoff{position:relative;padding:30px;margin:22px 0}.payoff:before{content:"MORNING SUMMARY";display:block;font:500 10px ui-monospace,monospace;letter-spacing:4px;color:var(--green);margin-bottom:10px}.payoff.no:before{content:"NOTHING WAS SENT";color:var(--red)}
+.payoff ul{list-style:none;padding:0;margin:16px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:10px}.payoff li{padding:12px 14px;border-radius:14px;background:#ffffff0a;box-shadow:0 0 0 1px #ffffff0d inset;font-size:13px;margin:0}
+.wfc{margin-top:14px;padding:6px 18px;border-radius:22px;background:linear-gradient(160deg,#ffffff0e,#ffffff04);box-shadow:var(--shadow)}.wfc summary{padding:12px 0;font:400 20px Georgia,serif;color:var(--fg)}.wfc summary small{font:400 12px -apple-system,sans-serif}
+.wrow{border-top:1px solid #ffffff12;padding:12px 0;font:italic 400 16px Georgia,serif}
+@media(max-width:700px){.payoff ul{grid-template-columns:1fr}}
 </style>
 <div class=banner>FICTIONAL DATA. This page REPLAYS two recorded runs (recorded __TS__, simulated clock 2:10 AM). Sponsor modes are as recorded: REAL / EXTERNAL / SIMULATED / FALLBACK. No real call is placed, no real person is involved.</div>
 <div id=intro><div>
@@ -66,7 +149,7 @@ video.clip{display:none;width:100%;grid-column:1/3;border-radius:8px}
 <div><h3>Live handoff feed</h3><div id=feed></div><div id=after></div></div>
 <div><h3>Sponsor tools (as recorded)</h3><div id=calls></div></div></div>
 <h3 style="margin-top:20px">The staff</h3><div class=roster id=staff></div>
-<div class=card style="margin-top:12px"><small>Six LLM-driven agents (OpenAI gpt-4o-mini, $3 cap): each makes one decision plus a short in-character line. The gates, prices, callback time and approvals are deterministic code, and the Director (human) approves. Front office: Mara, Faye. Back office: Quinn, Sol, Paige, Vera. Portraits are generated in Masky; voices and the narration are OpenAI TTS; all are AI-generated and fictional. The 2:07 AM opening, the time-saved counter and the morning summary are illustrative framing around the recorded run.</small></div>
+<details class=card style="margin-top:12px"><summary style="cursor:pointer;font:500 11px ui-monospace,monospace;letter-spacing:3px;color:var(--dim)">HOW TO READ THIS PAGE</summary><div style="display:grid;grid-template-columns:150px 1fr;margin-top:10px;font-size:13px;color:#b4b9c4;line-height:1.45"><b style="color:var(--gold);padding:9px 0;border-top:1px solid var(--line)">Agents</b><span style="padding:9px 0;border-top:1px solid var(--line)">Six LLM-driven (OpenAI gpt-4o-mini, $3 cap): each makes one decision plus a short in-character line.</span><b style="color:var(--gold);padding:9px 0;border-top:1px solid var(--line)">Deterministic</b><span style="padding:9px 0;border-top:1px solid var(--line)">Gates, prices, callback time and approvals. The Director (human) approves.</span><b style="color:var(--gold);padding:9px 0;border-top:1px solid var(--line)">Teams</b><span style="padding:9px 0;border-top:1px solid var(--line)">Front office: Mara, Faye. Back office: Quinn, Sol, Paige, Vera.</span><b style="color:var(--gold);padding:9px 0;border-top:1px solid var(--line)">Media</b><span style="padding:9px 0;border-top:1px solid var(--line)">Portraits generated in Masky; voices and narration are OpenAI TTS; all AI-generated and fictional.</span><b style="color:var(--gold);padding:9px 0;border-top:1px solid var(--line)">Illustrative</b><span style="padding:9px 0;border-top:1px solid var(--line)">The 2:07 AM opening, the time-saved counter and the morning summary are framing around the recorded run.</span></div></details>
 </main>
 <script>const VP=location.pathname.endsWith('demo.html')?'site/voice/':'voice/';const CP=VP.replace('voice','clips');const D=__DATA__;home.textContent=D.home;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -88,8 +171,11 @@ D.staff.forEach(s=>fetch(CP+s.name.toLowerCase()+'.mp4',{method:'HEAD'}).then(r=
 function clip(n){const v=document.getElementById('v-'+n);if(!v.src)v.src=CP+n.toLowerCase()+'.mp4';v.style.display='block';v.play()}
 let au=null;function sayit(n){if(au)au.pause();au=new Audio(VP+D.voice[n]+".mp3");au.play();}
 const fq=q=>Object.entries(q).map(([k,v])=>k.replace(/_/g,' ')+': $'+v).join(' | ');
-function card(t){if(t.phase=='handoff')return `<div class="msg handoff"><span class=tag>handoff</span> <b>${esc(t.msg)}</b><br><small>passes: ${esc((t.fields||[]).join(', '))} &middot; ${esc(t.evidence||'')}</small></div>`;let ex=t.quote?`<br><small>${esc(fq(t.quote))}</small>`:'';
-return `<div class="msg ${t.phase}"><span class=tag>${t.phase}</span><br>${D.img[t.who]?`<img class=av src="${D.img[t.who]}" alt="">`:''}<b>${t.who}</b>: ${esc(t.msg)}${ex}</div>`}
+function card(t){const av=n=>D.img[n]?`<img class=av src="${D.img[n]}" alt="${n}">`:`<span class=av>${n[0]}</span>`;
+if(t.phase=='handoff'){const m=String(t.msg).split('->').map(x=>x.trim());const from=m[0]||'';const to=m.slice(1).join(',').replace(/\(.*?\)/g,'').split(',').map(x=>x.trim()).filter(Boolean);
+return `<div class="tl handoff"><div class=rail><i></i></div><div class=body><div class=route>${av(from)}<span class=arr></span>${to.map(n=>av(n)).join('')}<b>${esc(t.msg)}</b></div><div class=chips>${(t.fields||[]).map(f=>`<span class=chip>${esc(f)}</span>`).join('')}</div><small>${esc(t.evidence||'')}</small></div></div>`}
+let ex=t.quote?`<div class=q>${esc(fq(t.quote))}</div>`:'';
+return `<div class="tl ${t.phase}"><div class=rail><i></i></div><div class=body><div class=who>${av(t.who)}<b>${t.who}</b><span class=chip>${t.phase}</span></div><div class=say>${esc(t.msg)}</div>${ex}</div></div>`}
 function showCalls(list,final){const got=Object.fromEntries(list.map(c=>[c.sponsor,c]));
 calls.innerHTML=D.yes.calls.map(c=>{const g=got[c.sponsor];if(g)return `<div class=card><b>${g.sponsor}</b> <small>${g.action} [<span class=${g.mode}>${g.mode}</span>]</small><br><small>${esc(g.reason||'')}${g.link&&/^https:\/\/github\.com\//.test(g.link)?` &middot; <a href="${esc(g.link)}" target=_blank rel=noopener style="color:#7db7ff">evidence link</a>`:''}</small></div>`;
 return `<div class=card style=opacity:.45><b>${c.sponsor}</b> <small>${final?'not reached (Director denied before this step)':'waiting for its step in this case'}</small></div>`}).join('')}
@@ -117,7 +203,7 @@ if(k>=ev.length){if(!branch)openGate();else finish()}}
 function loop(ms){clearTimeout(timer);timer=setTimeout(()=>{tick();if(state=='run')loop(ms)},ms)}
 function openGate(){state='gate';clearTimeout(timer);setN('Director','waiting','needs your decision');kan(2,'gold');
 const qa=A.find(t=>t.who=='Quinn'&&t.quote),sa=A.find(t=>t.who=='Sol'),cb=((sa&&sa.msg.match(/Callback (\S+?);/))||[])[1];
-feed.insertAdjacentHTML('beforeend',`<div class="msg approval"><span class=tag>approval needed</span><br><b>Director</b>: Approve sending the family message and dispatching the removal team?</div>`);feed.scrollTop=feed.scrollHeight;
+feed.insertAdjacentHTML('beforeend',`<div class="tl approval"><div class=rail><i></i></div><div class=body><div class=who><span class=av>D</span><b>Director</b><span class=chip>approval needed</span></div><div class=say>Approve sending the family message and dispatching the removal team?</div></div></div>`);feed.scrollTop=feed.scrollHeight;
 queue.className='queue live';queue.innerHTML=`<b>Waiting on the Director</b><ul><li>Family message drafted by Faye, passed Vera's compliance lint</li><li>Quote (price list, informational): ${esc(qa?fq(qa.quote):'')}</li><li>Callback planned for ${esc(cb?cb.slice(11,16):'7:00')}</li><li>Paperwork pre-filled, family-only fields left blank</li><li>Removal-team dispatch ticket (workflow round trip, no real team)</li></ul><button class=go id=ap>Approve</button><button class=deny id=dn>Deny</button>`;
 ap.onclick=()=>decide('yes');dn.onclick=()=>decide('no')}
 function decide(b){if(state!='gate')return;ap.disabled=dn.disabled=true;queue.className='queue';branch=b;showCalls(D[b].calls,true);ev=D[b].trace.slice(gate);k=0;state='run';loop(900)}
