@@ -17,7 +17,7 @@ def detail(c):
     if s == "Glasser": return "live balance check plus one recorded research run ($%s)" % (e.get("recorded_research_run", {}).get("charge_usd"))
     if s == "Prelint": return "PR review ran repo-side (link)"
     return c["reason"]
-def calls(r): return [dict(sponsor=c["sponsor"], action=c["action"], mode=c["mode"].upper(), reason=detail(c)) for c in r["sponsor_calls"]]
+def calls(r): return [dict(sponsor=c["sponsor"], action=c["action"], mode=c["mode"].upper(), reason=detail(c), link=((c.get("evidence") or {}).get("url") or (c.get("evidence") or {}).get("ci_run_url") or "")) for c in r["sponsor_calls"]]
 import base64
 AV = {"Mara": "mara", "Quinn": "quinn", "Sol": "sol", "Paige": "paige", "Faye": "faye", "Vera": "vera"}
 IMG = {k: "data:image/jpeg;base64," + base64.b64encode(open(f"avatars/{v}.jpg", "rb").read()).decode() for k, v in AV.items()}
@@ -28,7 +28,7 @@ page = """<!doctype html><meta charset=utf-8><meta name=viewport content="width=
 body{font:15px system-ui;margin:0;background:#12151a;color:#e8e8e8}header{padding:16px 24px;background:#1b2028}
 .banner{background:#7a4b00;color:#fff;padding:8px 24px;font-weight:600}
 main{display:grid;grid-template-columns:260px 1fr 340px;gap:16px;padding:16px}@media(max-width:900px){main{grid-template-columns:1fr}}
-.card{background:#1b2028;border-radius:10px;padding:12px;margin-bottom:10px}
+a{color:#7db7ff}.card{background:#1b2028;border-radius:10px;padding:12px;margin-bottom:10px}
 .av{display:inline-block;width:34px;height:34px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;background:#555}.pl{background:#2a3340;color:#e8e8e8;border:0;border-radius:6px;padding:2px 8px;cursor:pointer}.handoff{border-left:3px solid #4aa3ff;background:#161c24;padding:6px 10px;margin:4px 0 4px 18px;border-radius:6px}.bigav{width:64px;height:64px;border-radius:12px;object-fit:cover;float:left;margin-right:10px}.cap{color:#9aa;font-size:11px}
 .msg{border-left:4px solid #444;padding:8px 12px;margin:8px 0;background:#1b2028;border-radius:6px}
 .approval{border-color:#e0b000}.check{border-color:#4aa3ff}.request{border-color:#ccc}.improve{border-color:#55d68a}
@@ -42,13 +42,13 @@ main{display:grid;grid-template-columns:260px 1fr 340px;gap:16px;padding:16px}@m
 <div><h3>Sponsor tools (as recorded)</h3><div id=calls></div></div></main>
 <script>const VP=location.pathname.endsWith('demo.html')?'site/voice/':'voice/';const D=__DATA__;home.textContent=D.home;
 const col=Object.fromEntries(D.staff.map(s=>[s.name,s.color]));
-staff.innerHTML=D.staff.map(s=>`<div class=card><img class=bigav src="${D.img[s.name]}" alt="${s.name}"><b>${s.name}</b> ${s.role}<br><small>reports to Director</small><br><span class=cap>${D.office[s.name]} &middot; LLM-driven (gpt-4o-mini)</span><br><button class=pl onclick="sayit('${s.name}',this)">&#9654; voice</button> <span class=cap>avatar: Masky (AI, fictional) &middot; voice: OpenAI TTS (AI-generated)</span><div style=clear:both></div></div>`).join('');
+staff.innerHTML=D.staff.map(s=>`<div class=card><img class=bigav src="${D.img[s.name]}" alt="${s.name}"><b>${s.name}</b> ${s.role}<br><small>reports to Director</small><br><span class=cap>${D.office[s.name]} &middot; LLM-driven (gpt-4o-mini)</span><br><button class=pl onclick="sayit('${s.name}',this)">&#9654; voice</button> <span class=cap>portrait generated in Masky (AI, fictional), no runtime API call &middot; voice: OpenAI TTS (AI-generated)</span><div style=clear:both></div></div>`).join('');
 let au=null;function sayit(n,b){if(au)au.pause();au=new Audio(VP+D.voice[n]+".mp3");au.play();}
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function card(t){if(t.phase=='handoff')return `<div class="msg handoff"><span class=tag>handoff</span> <b>${esc(t.msg)}</b><br><small>passes: ${esc((t.fields||[]).join(', '))} &middot; ${esc(t.evidence||'')}</small></div>`;let ex=t.quote?`<br><small>`+Object.entries(t.quote).map(([k,v])=>esc(k.replace(/_/g,' '))+': $'+v).join(' | ')+`</small>`:'';
 return `<div class="msg ${t.phase}"><span class=tag>${t.phase}</span><br><img class=av src="${D.img[t.who]||''}" alt=""><b>${t.who}</b>: ${esc(t.msg)}${ex}</div>`}
 function showCalls(list,final,b){const got=Object.fromEntries(list.map(c=>[c.sponsor,c]));
-calls.innerHTML=D.yes.calls.map(c=>{const g=got[c.sponsor];if(g)return `<div class=card><b>${g.sponsor}</b> <small>${g.action} [<span class=${g.mode}>${g.mode}</span>]</small><br><small>${esc(g.reason||'')}</small></div>`;
+calls.innerHTML=D.yes.calls.map(c=>{const g=got[c.sponsor];if(g)return `<div class=card><b>${g.sponsor}</b> <small>${g.action} [<span class=${g.mode}>${g.mode}</span>]</small><br><small>${esc(g.reason||'')}${g.link&&/^https:\/\/github\.com\//.test(g.link)?` &middot; <a href="${esc(g.link)}" target=_blank rel=noopener>evidence link</a>`:''}</small></div>`;
 return `<div class=card style=opacity:.45><b>${c.sponsor}</b> <small>${final?'not reached (Director denied before this step)':'waiting for its step in this case'}</small></div>`}).join('')}
 const PRE=D.yes.calls.findIndex(c=>c.sponsor=='n8n');showCalls([],false);let i=0,branch=null;const A=D.yes.trace;const gate=A.findIndex(t=>t.phase=='approval');
 function step(){if(i<gate){feed.insertAdjacentHTML('beforeend',card(A[i++]));showCalls(D.yes.calls.slice(0,Math.ceil(i*PRE/gate)),false);setTimeout(step,800);return}

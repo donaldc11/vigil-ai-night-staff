@@ -1,6 +1,6 @@
 """Capped OpenAI client (stdlib only). OpenAI is the ONLY model provider. Fictional/redacted data only.
 Env: OPENAI_API_KEY (enables), VIGIL_OPENAI_MODEL, VIGIL_OPENAI_BASE_URL, VIGIL_LLM_CAP_USD (default 3.00, hard total),
-VIGIL_LLM_RUN_TOKENS (default 1500 per run), VIGIL_OPENAI_PRICE_IN / _OUT (USD per 1M tokens; ESTIMATES used for the cap).
+VIGIL_LLM_RUN_TOKENS (default 3000 per run), VIGIL_OPENAI_PRICE_IN / _OUT (USD per 1M tokens; ESTIMATES used for the cap).
 Spend is persisted in VIGIL_LLM_SPEND_FILE (default ~/.vigil_llm_spend.json) so the cap holds across runs and processes."""
 import os, json, urllib.request, urllib.error
 

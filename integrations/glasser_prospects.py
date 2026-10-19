@@ -1,5 +1,5 @@
 """One bounded Glasser web_research call: public funeral-home business info for a prospect list. Never contacts anyone.
-Run once; saves evidence to data/glasser_prospects.json (public business names/URLs only). Key: GLASSER_API_KEY (vault only)."""
+Run once; saves evidence to data/glasser_prospects.json (business names and URLs were scrubbed afterwards; only the count, status and charge are kept). Key: GLASSER_API_KEY (vault only)."""
 import os, json, uuid, urllib.request, sys
 KEY = os.environ["GLASSER_API_KEY"]; B = "https://api.glasser.ai"
 def call(method, path, body=None, idem=None):
