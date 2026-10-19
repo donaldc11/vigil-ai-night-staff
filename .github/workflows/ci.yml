@@ -1,0 +1,19 @@
+name: ci
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test-and-scan:
+    runs-on: tenki-standard-small-2c-4g
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Tests
+        run: python3 tests/test_vigil.py
+      - name: Secrets scan
+        run: python3 scan_secrets.py
