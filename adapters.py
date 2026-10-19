@@ -51,17 +51,26 @@ class RocketRide(Adapter):
 class Celesto(Adapter):
     name = "Celesto"; job = "validate generated paperwork inside an isolated sandbox"; env = ("CELESTO_API_KEY",)
     def real(self, action, p):
+        import uuid
         from celesto import Computer
-        c = Computer(api_key=os.environ["CELESTO_API_KEY"])
+        from celesto.sdk.client import _CelestoClient as CelestoClient
+        cl = CelestoClient(api_key=os.environ["CELESTO_API_KEY"])
+        c = None
         try:
+            # the live API now requires an Idempotency-Key on create; SDK 0.0.14 Computer() does not send one, so create via the client
+            info = cl.computers._request("POST", "/computers", json_body={}, headers={"Idempotency-Key": str(uuid.uuid4())})
+            c = Computer.get(info["id"], client=cl)
             out = c.run("python3 -c \"import json,sys;json.loads(sys.stdin.read() or '{}');print('ok')\" <<'EOF'\n" + p.get("json", "{}") + "\nEOF")
             res = str(out)
             if "ok" not in res: raise RuntimeError("sandbox did not confirm paperwork JSON: " + res[:100])
             ex = out.get("exit_code") if isinstance(out, dict) else None
             if ex not in (None, 0): raise RuntimeError(f"sandbox exit code {ex}")
-            return {"sandbox_result": res[:200], "exit_code": ex}
+            return {"sandbox_result": res[:200], "exit_code": ex, "computer_id": info["id"]}
         finally:
-            try: c.close()
+            try:
+                if c: c.delete()
+            except Exception: pass
+            try: cl.close()
             except Exception: pass
 
 class Snyk(Adapter):
