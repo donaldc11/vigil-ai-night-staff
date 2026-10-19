@@ -162,7 +162,7 @@ def run(call_text, director=None, ledger=None, outdir=None, reg=None, now=None, 
     step("Sol", "act", "Dispatch ticket sent to the dispatch workflow (a workflow round trip; no real removal team exists in this build).")
     require("send_family_message", case_id, {"msg": msg}, a1); use("Masky", "avatar")
     step("Faye", "act", "Approved message recorded for delivery (no real call or text is placed in this build).", message=msg)
-    use("Tenki", "ci")
+    use("Tenki", "lint_in_sandbox", {"msg": msg})
     bd = use("BAND", "post", {"text": f"Case {case_id} ({handoff['preference']}, {handoff['location']}): approved, callback {sc['callback']}. (FICTIONAL)"})
     ticket = n8.evidence.get("ticket") if n8.mode == "real" else None
     step("Lex", "report", "Case logged: disclosure given, approvals, quote shown." + (f" Workflow ticket at {ticket['dispatched_at']}." if ticket else " Workflow ticket: simulated.")

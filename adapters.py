@@ -113,6 +113,33 @@ class RepoSide(Adapter):
         if url: return Result(self.name, action, "external", "ran repo-side; evidence URL supplied by operator", {"url": url})
         return Result(self.name, action, "simulated", f"repo-side tool, no run evidence (set {self._env})")
 
+class TenkiSandbox(RepoSide):
+    """Tenki: if TENKI_API_KEY is set, Lex's compliance lint is re-run inside a disposable Tenki sandbox VM and must agree with the local verdict.
+    Otherwise it falls back to repo-side evidence (CI runner link) or simulated."""
+    def call(self, action, payload=None):
+        if not os.environ.get("TENKI_API_KEY"): return super().call(action, payload)
+        try:
+            return Result(self.name, action, "real", evidence=self.sandbox(payload or {}))
+        except Exception as e:
+            return Result(self.name, action, "fallback", f"real path failed: {type(e).__name__}: {str(e)[:160]}")
+    def sandbox(self, p):
+        from tenki_sandbox import Sandbox
+        import lint as L
+        here = os.path.dirname(os.path.abspath(__file__)); msg = p.get("msg", "")
+        sb = Sandbox.create(api_key=os.environ["TENKI_API_KEY"], name="vigil-lex-lint", wait=True, max_duration=300)
+        try:
+            sb.fs.write_text("/home/tenki/lint.py", open(os.path.join(here, "lint.py")).read())
+            sb.fs.write_text("/home/tenki/msg.txt", msg)
+            r = sb.exec("python3", "-c", "import json,lint;print(json.dumps(lint.lint(open('msg.txt').read())))", cwd="/home/tenki", timeout=60)
+            if r.exit_code != 0: raise RuntimeError("sandbox exit %s: %s" % (r.exit_code, r.stderr_text()[:100]))
+            remote = json.loads(r.stdout_text().strip().splitlines()[-1])
+        finally:
+            try: sb.close()
+            except Exception: pass
+        local = L.lint(msg)
+        if remote != local: raise RuntimeError("sandbox lint verdict differs from local: %s vs %s" % (remote, local))
+        return {"sandbox_lint_issues": remote, "agrees_with_local": True, "ran_in": "Tenki Sandbox VM"}
+
 class Paritok(Adapter):
     name = "Paritok"; job = "context compression gateway sitting between Vigil and the OpenAI API (prompts here are tiny, so savings are ~0; we label that)"; env = ("VIGIL_PARITOK_URL",)
     def real(self, action, p):
@@ -129,6 +156,6 @@ class Plain(Adapter):
 def registry():
     return {a.name: a for a in [N8n(), RocketRide(), Celesto(), Snyk(),
         RepoSide("Prelint", "PR compliance review of the agent spec", "VIGIL_PRELINT_EVIDENCE_URL"),
-        RepoSide("Tenki", "CI runner for the test suite", "VIGIL_TENKI_EVIDENCE_URL"),
+        TenkiSandbox("Tenki", "CI runner for the test suite (repo-side) and a sandbox VM that re-runs Lex's compliance lint", "VIGIL_TENKI_EVIDENCE_URL"),
         Band(), Paritok(), Plain("PromptQL", "natural-language ledger queries"),
         Plain("Flatkey", "model API / failover gateway (not a key vault)"), Plain("Masky", "avatar for Faye")]}

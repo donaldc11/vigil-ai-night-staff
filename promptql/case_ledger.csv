@@ -1,0 +1,11 @@
+case_id,received_local,caller,preference_stated,location,item_id,quoted_price_usd,status,waiting_on_gate,approver,quote_reason,callback
+C-1001,2026-10-19 02:10,Caller A (fictional),cremation,home,direct_cremation,2995,awaiting_approval,send_family_message,Director,"Caller said father passed at home and wanted cremation; no service mentioned, so lowest-price match",07:00 same day
+C-1002,2026-10-19 01:42,Caller B (fictional),cremation and a small service,hospital,cremation_with_service,5450,awaiting_approval,dispatch_removal,Director,Caller asked for a service with cremation; matched the bundle on the GPL,07:00 same day
+C-1003,2026-10-18 23:15,Caller C (fictional),burial,home,traditional_burial,9850,approved,,Director,Caller asked for burial with viewing; traditional burial includes viewing,07:00 next day
+C-1004,2026-10-18 22:05,Caller D (fictional),"burial, simple",care facility,immediate_burial,3600,completed,,Director,Caller asked for a simple burial without viewing,07:00 next day
+C-1005,2026-10-18 03:30,Caller E (fictional),unsure,home,,,awaiting_approval,send_family_message,Director,"No preference stated; no price quoted, family told a director will call at 7:00",07:00 same day
+C-1006,2026-10-17 04:50,Caller F (fictional),cremation,hospital,direct_cremation,2995,declined,dispatch_removal,Director,Director declined dispatch: family wanted to wait until morning,07:00 same day
+C-1007,2026-10-17 00:20,Caller G (fictional),cremation and service,home,cremation_with_service,5450,completed,,Director,Caller asked for cremation with a service,07:00 same day
+C-1008,2026-10-16 05:40,Caller H (fictional),cremation,care facility,direct_cremation,2995,completed,,Director,Caller stated direct cremation,07:00 same day
+C-1009,2026-10-16 01:05,Caller I (fictional),burial,hospital,traditional_burial,9850,approved,,Director,Caller asked for burial with a graveside service,07:00 same day
+C-1010,2026-10-15 23:55,Caller J (fictional),cremation,home,direct_cremation,2995,awaiting_approval,dispatch_removal,Director,"Caller said father passed at home, cremation; removal not yet approved",07:00 next day

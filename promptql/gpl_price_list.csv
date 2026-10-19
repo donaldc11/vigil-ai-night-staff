@@ -1,0 +1,5 @@
+item_id,item_name,price_usd,funeral_home,note
+direct_cremation,Direct cremation,2995,Maple Grove Funeral Home (FICTIONAL),fictional price list
+cremation_with_service,Cremation with service,5450,Maple Grove Funeral Home (FICTIONAL),fictional price list
+traditional_burial,Traditional burial,9850,Maple Grove Funeral Home (FICTIONAL),fictional price list
+immediate_burial,Immediate burial,3600,Maple Grove Funeral Home (FICTIONAL),fictional price list

@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import vigil, adapters, lint, llm
 YES = vigil.Director(lambda g, c, x: True); NO = vigil.Director(lambda g, c, x: False)
 CALL = "Hi, my father just passed at home. We think he wanted cremation. Call me at 916-555-0142."
-ENV = ["VIGIL_PARITOK_URL","OPENAI_API_KEY","VIGIL_OPENAI_BASE_URL","VIGIL_LLM_CAP_USD","VIGIL_LLM_RUN_TOKENS","VIGIL_LLM_SPEND_FILE","VIGIL_SNYK_PYTHON","FAKE_SNYK_EXIT","VIGIL_BAND_API_KEY","VIGIL_BAND_PY","VIGIL_N8N_WEBHOOK_URL","VIGIL_ROCKETRIDE_URI","VIGIL_ROCKETRIDE_PIPE","CELESTO_API_KEY","SNYK_TOKEN","VIGIL_PRELINT_EVIDENCE_URL","VIGIL_TENKI_EVIDENCE_URL"]
+ENV = ["TENKI_API_KEY","VIGIL_PARITOK_URL","OPENAI_API_KEY","VIGIL_OPENAI_BASE_URL","VIGIL_LLM_CAP_USD","VIGIL_LLM_RUN_TOKENS","VIGIL_LLM_SPEND_FILE","VIGIL_SNYK_PYTHON","FAKE_SNYK_EXIT","VIGIL_BAND_API_KEY","VIGIL_BAND_PY","VIGIL_N8N_WEBHOOK_URL","VIGIL_ROCKETRIDE_URI","VIGIL_ROCKETRIDE_PIPE","CELESTO_API_KEY","SNYK_TOKEN","VIGIL_PRELINT_EVIDENCE_URL","VIGIL_TENKI_EVIDENCE_URL"]
 def clear_env():
     for e in ENV: os.environ.pop(e, None)
 def phases(r): return [t["phase"] for t in r["trace"]]
@@ -257,6 +257,15 @@ class OAI(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps({"choices": [{"message": {"content": content}}], "usage": {"prompt_tokens": 100, "completion_tokens": 20}}).encode())
     def log_message(self, *a): pass
 GOOD_MSG = "We are so sorry for your loss. This call may be recorded. A director will call you at 7:00 AM to help with next steps."
+class TestTenki(Base):
+    def setUp(self): clear_env()
+    def tearDown(self): clear_env()
+    def test_no_key_is_simulated(self): self.assertEqual(adapters.TenkiSandbox("Tenki", "x", "VIGIL_TENKI_EVIDENCE_URL").call("x", {"msg": "m"}).mode, "simulated")
+    def test_evidence_url_is_external(self):
+        os.environ["VIGIL_TENKI_EVIDENCE_URL"] = "https://example.invalid/run"; self.assertEqual(adapters.TenkiSandbox("Tenki", "x", "VIGIL_TENKI_EVIDENCE_URL").call("x").mode, "external"); os.environ.pop("VIGIL_TENKI_EVIDENCE_URL")
+    def test_bad_key_is_fallback_never_real(self):
+        os.environ["TENKI_API_KEY"] = "tk_invalid"; self.assertIn(adapters.TenkiSandbox("Tenki", "x", "VIGIL_TENKI_EVIDENCE_URL").call("x", {"msg": "m"}).mode, ("fallback",))
+
 class TestParitok(Base):
     def setUp(self): clear_env()
     def tearDown(self): clear_env()
