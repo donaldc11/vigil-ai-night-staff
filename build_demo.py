@@ -15,9 +15,17 @@ def detail(c):
     if s == "BAND": return "case update posted to a BAND room"
     if s == "Paritok": return "OpenAI calls routed through the Paritok gateway (%s requests; tokens saved: %s)" % (e.get("requests_through_gateway"), e.get("tokens_saved"))
     if s == "Glasser": return "live balance check plus one recorded research run ($%s)" % (e.get("recorded_research_run", {}).get("charge_usd"))
-    if s == "Prelint": return "PR review ran repo-side (link)"
+    if s == "Prelint": return "PR review ran repo-side"
     return c["reason"]
-def calls(r): return [dict(sponsor=c["sponsor"], action=c["action"], mode=c["mode"].upper(), reason=detail(c), link=((c.get("evidence") or {}).get("url") or (c.get("evidence") or {}).get("ci_run_url") or "")) for c in r["sponsor_calls"]]
+def calls(r):
+    out = []
+    for c in r["sponsor_calls"]:
+        s, evidence = c["sponsor"], c.get("evidence") or {}
+        link = evidence.get("url") or evidence.get("ci_run_url") or ""
+        if s == "Prelint": link = os.environ.get("VIGIL_PRELINT_EVIDENCE_URL", "https://github.com/donaldc11/vigil-ai-night-staff/pull/1")
+        if s == "Tenki": link = os.environ.get("VIGIL_TENKI_EVIDENCE_URL", "https://github.com/donaldc11/vigil-ai-night-staff/actions/runs/39311833386")
+        out.append(dict(sponsor=s, action=c["action"], mode=c["mode"].upper(), reason=detail(c), link=link))
+    return out
 import base64
 AV = {"Mara": "mara", "Quinn": "quinn", "Sol": "sol", "Paige": "paige", "Faye": "faye", "Vera": "vera"}
 IMG = {k: "data:image/jpeg;base64," + base64.b64encode(open(f"avatars/{v}.jpg", "rb").read()).decode() for k, v in AV.items()}
