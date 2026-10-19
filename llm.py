@@ -8,7 +8,7 @@ class LLMUnavailable(Exception): pass
 
 def _cfg():
     return dict(base=os.environ.get("VIGIL_OPENAI_BASE_URL", "https://api.openai.com/v1"), model=os.environ.get("VIGIL_OPENAI_MODEL", "gpt-4o-mini"),
-        cap=float(os.environ.get("VIGIL_LLM_CAP_USD", "3.00")), run_tokens=int(os.environ.get("VIGIL_LLM_RUN_TOKENS", "1500")),
+        cap=float(os.environ.get("VIGIL_LLM_CAP_USD", "3.00")), run_tokens=int(os.environ.get("VIGIL_LLM_RUN_TOKENS", "3000")),
         pin=float(os.environ.get("VIGIL_OPENAI_PRICE_IN", "0.15")), pout=float(os.environ.get("VIGIL_OPENAI_PRICE_OUT", "0.60")),
         spend=os.environ.get("VIGIL_LLM_SPEND_FILE", os.path.expanduser("~/.vigil_llm_spend.json")))
 
@@ -39,7 +39,10 @@ class Budget:
         usd = (pt * c["pin"] + ct * c["pout"]) / 1e6
         s.tokens += pt + ct
         try:
-            with open(c["spend"], "w") as f: json.dump({"usd_estimate": spent(c["spend"]) + usd}, f)
+            total = spent(c["spend"]) + usd   # read BEFORE opening for write (open("w") truncates the file)
+            tmp = c["spend"] + ".tmp"
+            with open(tmp, "w") as f: json.dump({"usd_estimate": total}, f)
+            os.replace(tmp, c["spend"])
         except OSError: pass
         s.calls.append({"purpose": purpose, "model": c["model"], "prompt_tokens": pt, "completion_tokens": ct, "usd_estimate": round(usd, 6)})
         try: return d["choices"][0]["message"]["content"]

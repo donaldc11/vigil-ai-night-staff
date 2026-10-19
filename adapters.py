@@ -117,7 +117,7 @@ class TenkiSandbox(RepoSide):
     """Tenki: if TENKI_API_KEY is set, Lex's compliance lint is re-run inside a disposable Tenki sandbox VM and must agree with the local verdict.
     Otherwise it falls back to repo-side evidence (CI runner link) or simulated."""
     def call(self, action, payload=None):
-        if not os.environ.get("TENKI_API_KEY"): return super().call(action, payload)
+        if not (os.environ.get("TENKI_API_KEY_EAZY") or os.environ.get("TENKI_API_KEY")): return super().call(action, payload)
         try:
             return Result(self.name, action, "real", evidence=self.sandbox(payload or {}))
         except Exception as e:
@@ -126,7 +126,7 @@ class TenkiSandbox(RepoSide):
         from tenki_sandbox import Sandbox
         import lint as L
         here = os.path.dirname(os.path.abspath(__file__)); msg = p.get("msg", "")
-        sb = Sandbox.create(api_key=os.environ["TENKI_API_KEY"], name="vigil-lex-lint", wait=True, max_duration=300)
+        sb = Sandbox.create(api_key=os.environ.get("TENKI_API_KEY_EAZY") or os.environ["TENKI_API_KEY"], name="vigil-lex-lint", wait=True, max_duration=300)
         try:
             sb.fs.write_text("/home/tenki/lint.py", open(os.path.join(here, "lint.py")).read())
             sb.fs.write_text("/home/tenki/msg.txt", msg)
@@ -139,6 +139,15 @@ class TenkiSandbox(RepoSide):
         local = L.lint(msg)
         if remote != local: raise RuntimeError("sandbox lint verdict differs from local: %s vs %s" % (remote, local))
         return {"sandbox_lint_issues": remote, "agrees_with_local": True, "ran_in": "Tenki Sandbox VM"}
+
+class Glasser(Adapter):
+    name = "Glasser"; job = "bounded public web research for a funeral-home prospect list (one recorded query, never contacts anyone)"; env = ("GLASSER_API_KEY",)
+    def real(self, action, p):
+        here = os.path.dirname(os.path.abspath(__file__)); ev = json.load(open(os.path.join(here, "data", "glasser_prospects.json")))
+        if ev.get("status") != "COMPLETED": raise RuntimeError("recorded research run is not COMPLETED")
+        req = urllib.request.Request("https://api.glasser.ai/v1/balance", headers={"Authorization": "Bearer " + os.environ["GLASSER_API_KEY"], "User-Agent": "vigil-hackathon/1.0"})
+        bal = json.loads(urllib.request.urlopen(req, timeout=15).read())   # live, free call proving the key works now
+        return {"live_balance_check_usd": bal.get("available_usd"), "recorded_research_run": {"status": ev["status"], "charge_usd": ev["charge_usd"], "results": len((ev.get("output") or {}).get("results", []))}}
 
 class Paritok(Adapter):
     name = "Paritok"; job = "context compression gateway sitting between Vigil and the OpenAI API (prompts here are tiny, so savings are ~0; we label that)"; env = ("VIGIL_PARITOK_URL",)
@@ -157,5 +166,5 @@ def registry():
     return {a.name: a for a in [N8n(), RocketRide(), Celesto(), Snyk(),
         RepoSide("Prelint", "PR compliance review of the agent spec", "VIGIL_PRELINT_EVIDENCE_URL"),
         TenkiSandbox("Tenki", "CI runner for the test suite (repo-side) and a sandbox VM that re-runs Lex's compliance lint", "VIGIL_TENKI_EVIDENCE_URL"),
-        Band(), Paritok(), Plain("PromptQL", "natural-language ledger queries"),
+        Band(), Paritok(), Glasser(), Plain("PromptQL", "natural-language ledger queries"),
         Plain("Flatkey", "model API / failover gateway (not a key vault)"), Plain("Masky", "avatar for Faye")]}
