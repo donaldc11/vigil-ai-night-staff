@@ -5,7 +5,19 @@ NOW = datetime.datetime(2026, 10, 20, 2, 10)   # simulated clock: a 2:10 AM call
 yes = vigil.run(CALL, vigil.Director(lambda g, c, x: True), now=NOW)
 no = vigil.run(CALL, vigil.Director(lambda g, c, x: False), now=NOW)
 COL = ["#6b8cae", "#8a6bae", "#ae8a6b", "#6bae8a", "#ae6b7e", "#7e7e7e"]
-def calls(r): return [dict(sponsor=c["sponsor"], action=c["action"], mode=c["mode"].upper(), reason=c["reason"]) for c in r["sponsor_calls"]]
+def detail(c):
+    e = c.get("evidence") or {}; s = c["sponsor"]
+    if c["mode"] != "real" and c["mode"] != "external": return c["reason"]
+    if s == "Tenki": return "Vera's compliance lint re-run inside a Tenki sandbox VM; verdict matched the local lint" if c["mode"] == "real" else "CI run on a Tenki runner (repo-side link)"
+    if s == "Celesto": return "paperwork JSON written into a Celesto sandbox and hash-checked"
+    if s == "n8n": return "dispatch ticket round trip through a live n8n workflow"
+    if s == "Snyk": return "dependency scan, exit code %s" % e.get("exit_code")
+    if s == "BAND": return "case update posted to a BAND room"
+    if s == "Paritok": return "OpenAI calls routed through the Paritok gateway (%s requests; tokens saved: %s)" % (e.get("requests_through_gateway"), e.get("tokens_saved"))
+    if s == "Glasser": return "live balance check plus one recorded research run ($%s)" % (e.get("recorded_research_run", {}).get("charge_usd"))
+    if s == "Prelint": return "PR review ran repo-side (link)"
+    return c["reason"]
+def calls(r): return [dict(sponsor=c["sponsor"], action=c["action"], mode=c["mode"].upper(), reason=detail(c)) for c in r["sponsor_calls"]]
 import base64
 AV = {"Mara": "mara", "Quinn": "quinn", "Sol": "sol", "Paige": "paige", "Faye": "faye", "Vera": "vera"}
 IMG = {k: "data:image/jpeg;base64," + base64.b64encode(open(f"avatars/{v}.jpg", "rb").read()).decode() for k, v in AV.items()}
@@ -35,14 +47,16 @@ let au=null;function sayit(n,b){if(au)au.pause();au=new Audio(VP+D.voice[n]+".mp
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function card(t){if(t.phase=='handoff')return `<div class="msg handoff"><span class=tag>handoff</span> <b>${esc(t.msg)}</b><br><small>passes: ${esc((t.fields||[]).join(', '))} &middot; ${esc(t.evidence||'')}</small></div>`;let ex=t.quote?`<br><small>`+Object.entries(t.quote).map(([k,v])=>esc(k.replace(/_/g,' '))+': $'+v).join(' | ')+`</small>`:'';
 return `<div class="msg ${t.phase}"><span class=tag>${t.phase}</span><br><img class=av src="${D.img[t.who]||''}" alt=""><b>${t.who}</b>: ${esc(t.msg)}${ex}</div>`}
-function showCalls(list){calls.innerHTML=list.map(c=>`<div class=card><b>${c.sponsor}</b> <small>${c.action} [<span class=${c.mode}>${c.mode}</span>]</small><br><small>${esc(c.reason||'')}</small></div>`).join('')}
-let i=0,branch=null;const A=D.yes.trace;const gate=A.findIndex(t=>t.phase=='approval');
-function step(){if(i<gate){feed.insertAdjacentHTML('beforeend',card(A[i++]));showCalls(D.yes.calls.slice(0,Math.ceil(i*D.yes.calls.length/A.length)));setTimeout(step,800);return}
+function showCalls(list,final,b){const got=Object.fromEntries(list.map(c=>[c.sponsor,c]));
+calls.innerHTML=D.yes.calls.map(c=>{const g=got[c.sponsor];if(g)return `<div class=card><b>${g.sponsor}</b> <small>${g.action} [<span class=${g.mode}>${g.mode}</span>]</small><br><small>${esc(g.reason||'')}</small></div>`;
+return `<div class=card style=opacity:.45><b>${c.sponsor}</b> <small>${final?'not reached (Director denied before this step)':'waiting for its step in this case'}</small></div>`}).join('')}
+const PRE=D.yes.calls.findIndex(c=>c.sponsor=='n8n');showCalls([],false);let i=0,branch=null;const A=D.yes.trace;const gate=A.findIndex(t=>t.phase=='approval');
+function step(){if(i<gate){feed.insertAdjacentHTML('beforeend',card(A[i++]));showCalls(D.yes.calls.slice(0,Math.ceil(i*PRE/gate)),false);setTimeout(step,800);return}
 feed.insertAdjacentHTML('beforeend',`<div class="msg approval"><span class=tag>approval needed</span><br><b>Director</b>: Approve sending the family message and dispatching the removal team?<br><br><button class=go id=ap>Approve</button><button class=deny id=dn>Deny</button></div>`);
 ap.onclick=()=>fin('yes');dn.onclick=()=>fin('no')}
-function fin(b){ap.disabled=dn.disabled=true;const T=D[b].trace;let j=gate;showCalls(D[b].calls);
+function fin(b){ap.disabled=dn.disabled=true;const T=D[b].trace;let j=gate;showCalls(D[b].calls,true);
 (function n(){if(j>=T.length)return;feed.insertAdjacentHTML('beforeend',card(T[j++]));setTimeout(n,700)})()}
-play.onclick=()=>{feed.innerHTML='';i=0;step()};</script>"""
+play.onclick=()=>{feed.innerHTML='';i=0;showCalls([],false);step()};</script>"""
 page = page.replace("__DATA__", data).replace("__TS__", json.loads(data)["ts"])
 os.makedirs("site", exist_ok=True)
 for p in ("site/index.html", "demo.html"):
