@@ -22,5 +22,5 @@ Status key: REAL = invoked and answered; LOCAL = our own real code, no vendor; S
 | Tenki | CI runs the test suite | repo-side evidence URL | SIMULATED -> EXTERNAL |
 | Snyk | dependency vulnerability scan on pinned deps; real findings (exit 1) block dispatch, runs before the approval gates | REAL | e2e 11:24: scan ran via Snyk API, exit 0 (no vulns), Snyk CLI v1.1308. Gate logic also tested with a test double |
 | RocketRide | intake pipeline | adapters.RocketRide via SDK; needs an engine (no Docker here) and a .pipe file | SIMULATED; integrations/vigil_intake.pipe is written but NOT verified against a live engine |
-| Celesto | sandbox-validate paperwork | adapters.Celesto (API key) | SIMULATED; no key; local SmolVM needs KVM, absent |
+| Celesto | sandbox-validate paperwork | adapters.Celesto: creates a live sandbox (free trial), writes paperwork.json there, checks its sha256 matches ours, deletes the sandbox | REAL (live call verified 2026-10-19; the sandbox has no python so the check is a hash match, not a schema validation) |
 | BAND, PromptQL, Flatkey, Paritok, Masky | channel / ledger queries / key gateway / metering / avatar | none | SIMULATED; no verified API built |

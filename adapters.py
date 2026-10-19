@@ -60,9 +60,18 @@ class Celesto(Adapter):
             # the live API now requires an Idempotency-Key on create; SDK 0.0.14 Computer() does not send one, so create via the client
             info = cl.computers._request("POST", "/computers", json_body={}, headers={"Idempotency-Key": str(uuid.uuid4())})
             c = Computer.get(info["id"], client=cl)
-            out = c.run("python3 -c \"import json,sys;json.loads(sys.stdin.read() or '{}');print('ok')\" <<'EOF'\n" + p.get("json", "{}") + "\nEOF")
+            import time
+            for _ in range(40):  # wait until the sandbox finishes creating
+                st = str(cl.computers.get(info["id"]).get("status", "")).lower()
+                if st in ("running", "ready", "active"): break
+                if st in ("failed", "error"): raise RuntimeError("sandbox status " + st)
+                time.sleep(2)
+            import hashlib
+            body = p.get("json", "{}"); want = hashlib.sha256(body.encode()).hexdigest()
+            # the scratch sandbox has no python: write the paperwork file there and check its sha256 matches ours
+            out = c.run("cat > /tmp/paperwork.json <<'VIGIL_EOF'\n" + body + "\nVIGIL_EOF\nhead -c -1 /tmp/paperwork.json | sha256sum")
             res = str(out)
-            if "ok" not in res: raise RuntimeError("sandbox did not confirm paperwork JSON: " + res[:100])
+            if want not in res: raise RuntimeError("sandbox hash did not match paperwork: " + res[:100])
             ex = out.get("exit_code") if isinstance(out, dict) else None
             if ex not in (None, 0): raise RuntimeError(f"sandbox exit code {ex}")
             return {"sandbox_result": res[:200], "exit_code": ex, "computer_id": info["id"]}
