@@ -69,6 +69,4 @@ land = open("site_landing.html").read().replace("__TEAM__", team).replace("__TAL
 open("site/index.html", "w").write(land)
 for p in ("site/dashboard.html", "demo.html"):
     with open(p, "w") as f: f.write(page)
-# GitHub Pages publishes docs/. Keep the generated site in sync with that output.
-shutil.copytree("site", "docs", dirs_exist_ok=True)
 print("built", yes["outcome"], no["outcome"], "gate index", [t["phase"] for t in yes["trace"]].index("approval"))
