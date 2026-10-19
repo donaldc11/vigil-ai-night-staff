@@ -3,7 +3,7 @@ Status key: REAL = invoked and answered; LOCAL = our own real code, no vendor; S
 
 | Rule / checklist item | Evidence | Status |
 |---|---|---|
-| Solo or team up to 4 humans | 1 human Director (Chris) | MET |
+| Solo or team up to 4 humans | 1 human Director (human) | MET |
 | AI-native company, humans + AI as co-founders/employees | vigil.py STAFF + Director | MET |
 | 5+ AI employees, each with role, outputs, reporting line | 6 agents in vigil.STAFF, all report to Director; outputs: intake record, quote, .ics, paperwork.json, lint verdict, ledger | MET (LOCAL logic) |
 | Full loop: request, delegate, act, check, report, improve | vigil.run trace phases; tests TestLoop.test_full_loop | MET |
