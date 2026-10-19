@@ -1,0 +1,64 @@
+{
+ "status": "COMPLETED",
+ "charge_usd": "0.0011",
+ "run_url": "https://app.glasser.ai/runs/72b55b76-e0c4-44c7-8e2a-92d31386095f",
+ "output": {
+  "results": [
+   {
+    "url": "https://www.sacramentofuneralandcremation.com/",
+    "title": "Sierra View Funeral Chapel & Crematory | Sacramento",
+    "snippet": "Our Sacramento funeral home and Roseville locatoin offer cremation, burial & funeral services. Cremation starts at $1495 and funeral services start at ...",
+    "position": 1,
+    "date": null,
+    "published_at": null,
+    "date_text": null
+   },
+   {
+    "url": "https://www.after.com/articles/funeral-homes-california",
+    "title": "10 Best Funeral Homes in California That Families Trust ...",
+    "snippet": "Heritage Oaks Memorial Chapel is a full-service, independently owned funeral home in Rocklin. They serve families across the greater Sacramento ...",
+    "position": 2,
+    "date": "7 days ago",
+    "published_at": null,
+    "date_text": "7 days ago"
+   },
+   {
+    "url": "https://www.cfb.ca.gov/",
+    "title": "Cemetery and Funeral Bureau: Home",
+    "snippet": "Cemetery and Funeral Bureau Homepage is designed to help Californians become informed consumers by learning their rights and protection.",
+    "position": 3,
+    "date": null,
+    "published_at": null,
+    "date_text": null
+   },
+   {
+    "url": "https://sunsetlawn.chapelofthechimes.com/",
+    "title": "Sunset Lawn Chapel of the Chimes Funeral Home in ...",
+    "snippet": "Trusted funeral, burial, and cremation services in Sacramento since 1938. Available 24/7. Honor and celebrate the life of a passed loved one.",
+    "position": 4,
+    "date": null,
+    "published_at": null,
+    "date_text": null
+   },
+   {
+    "url": "https://www.cfcssacramento.org/",
+    "title": "Catholic Funeral & Cemetery Services of the Diocese of ...",
+    "snippet": "Catholic Funeral & Cemetery Services (CFCS) is a full service provider of End-Of-Life care for the Catholic Community in the Diocese of Sacramento.",
+    "position": 5,
+    "date": null,
+    "published_at": null,
+    "date_text": null
+   }
+  ]
+ },
+ "balance_before": {
+  "balance_usd": "1.00",
+  "held_usd": "0.00",
+  "available_usd": "1.00"
+ },
+ "balance_after": {
+  "balance_usd": "0.9989",
+  "held_usd": "0.00",
+  "available_usd": "0.9989"
+ }
+}

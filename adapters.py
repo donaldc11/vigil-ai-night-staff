@@ -113,6 +113,16 @@ class RepoSide(Adapter):
         if url: return Result(self.name, action, "external", "ran repo-side; evidence URL supplied by operator", {"url": url})
         return Result(self.name, action, "simulated", f"repo-side tool, no run evidence (set {self._env})")
 
+class Paritok(Adapter):
+    name = "Paritok"; job = "context compression gateway sitting between Vigil and the OpenAI API (prompts here are tiny, so savings are ~0; we label that)"; env = ("VIGIL_PARITOK_URL",)
+    def real(self, action, p):
+        base = os.environ["VIGIL_PARITOK_URL"].rstrip("/")
+        if not os.environ.get("VIGIL_OPENAI_BASE_URL", "").startswith(base): raise RuntimeError("OpenAI calls are not routed through the Paritok gateway")
+        get = lambda path: json.loads(urllib.request.urlopen(base + path, timeout=10).read())
+        h, s = get("/health"), get("/stats")
+        if h.get("status") != "ok" or not s.get("total_requests"): raise RuntimeError("gateway up but no request passed through it")
+        return {"gateway_version": h.get("version"), "requests_through_gateway": s["total_requests"], "tokens_saved": s.get("tokens_saved", 0), "input_tokens_original": s.get("input_tokens_original", 0)}
+
 class Plain(Adapter):
     def __init__(s, name, job): s.name, s.job = name, job
 
@@ -120,5 +130,5 @@ def registry():
     return {a.name: a for a in [N8n(), RocketRide(), Celesto(), Snyk(),
         RepoSide("Prelint", "PR compliance review of the agent spec", "VIGIL_PRELINT_EVIDENCE_URL"),
         RepoSide("Tenki", "CI runner for the test suite", "VIGIL_TENKI_EVIDENCE_URL"),
-        Band(), Plain("PromptQL", "natural-language ledger queries"),
-        Plain("Flatkey", "model API / failover gateway (not a key vault)"), Plain("Paritok", "context/session compression (not metering)"), Plain("Masky", "avatar for Faye")]}
+        Band(), Paritok(), Plain("PromptQL", "natural-language ledger queries"),
+        Plain("Flatkey", "model API / failover gateway (not a key vault)"), Plain("Masky", "avatar for Faye")]}
