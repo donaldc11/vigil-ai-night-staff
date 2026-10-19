@@ -12,3 +12,7 @@ Set in the shell or a gitignored .env that is exported before running. Never com
 | BAND, PromptQL, Flatkey, Paritok, Masky | none yet | no verified API built; need docs or key + endpoint from the credits agent | stay SIMULATED |
 
 Rules: a tool is only called REAL if we invoked it and it answered; EXTERNAL = ran repo-side, evidence link only; FALLBACK = configured but failed. Count today: REAL 3 (n8n, Snyk, BAND), EXTERNAL 1 (Prelint), SIMULATED 7/11. Snyk also needs VIGIL_SNYK_PYTHON (a python with the pinned deps installed) and a token Snyk accepts; BAND needs a key that is linked to an agent.
+
+## OpenAI (Mara classification, Faye drafts)
+- OPENAI_API_KEY (vault only). Optional: VIGIL_LLM_CAP_USD (default 3.00, persisted in ~/.vigil_llm_spend.json), VIGIL_LLM_RUN_TOKENS (1500), VIGIL_OPENAI_MODEL.
+- Without a key both steps run deterministic code and are labeled "off". Cost in the report is an ESTIMATE from token counts.
