@@ -28,7 +28,7 @@ class Adapter:
             return Result(self.name, action, "fallback", f"real path failed: {type(e).__name__}: {str(e)[:160]}")
 
 class N8n(Adapter):
-    name = "n8n"; job = "dispatch workflow: webhook fires the first-call on-call workflow"; env = ("VIGIL_N8N_WEBHOOK_URL",)
+    name = "n8n"; job = "workflow round trip: webhook sends a dispatch ticket to a live n8n workflow (it does not move a real removal team)"; env = ("VIGIL_N8N_WEBHOOK_URL",)
     def real(self, action, p):
         req = urllib.request.Request(os.environ["VIGIL_N8N_WEBHOOK_URL"], json.dumps(p).encode(), {"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=10) as r:
@@ -55,19 +55,36 @@ class Celesto(Adapter):
         c = Computer(api_key=os.environ["CELESTO_API_KEY"])
         try:
             out = c.run("python3 -c \"import json,sys;json.loads(sys.stdin.read() or '{}');print('ok')\" <<'EOF'\n" + p.get("json", "{}") + "\nEOF")
-            return {"sandbox_result": str(out)[:200]}
+            res = str(out)
+            if "ok" not in res: raise RuntimeError("sandbox did not confirm paperwork JSON: " + res[:100])
+            ex = out.get("exit_code") if isinstance(out, dict) else None
+            if ex not in (None, 0): raise RuntimeError(f"sandbox exit code {ex}")
+            return {"sandbox_result": res[:200], "exit_code": ex}
         finally:
             try: c.close()
             except Exception: pass
 
 class Snyk(Adapter):
-    name = "Snyk"; job = "dependency/code security scan gate"; env = ("SNYK_TOKEN",)
+    name = "Snyk"; job = "dependency vulnerability scan; real findings (exit 1) block dispatch"; env = ("SNYK_TOKEN",)
     def real(self, action, p):
         b = os.environ.get("VIGIL_SNYK_BIN") or shutil.which("snyk")
         if not b: raise RuntimeError("snyk CLI not installed (set VIGIL_SNYK_BIN)")
-        r = subprocess.run([b, "test", "--file=requirements.txt", "--json"], capture_output=True, text=True, timeout=120, cwd=p.get("dir", "."))
+        cmd = [b, "test", "--file=requirements.txt", "--json"] + (["--command=" + os.environ["VIGIL_SNYK_PYTHON"]] if os.environ.get("VIGIL_SNYK_PYTHON") else [])
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120, cwd=p.get("dir", os.path.dirname(os.path.abspath(__file__))))
         if r.returncode > 1: raise RuntimeError("snyk error: " + (r.stdout or r.stderr)[:120])
         return {"exit_code": r.returncode, "ok": r.returncode == 0, **({"error": r.stdout[:150]} if r.returncode > 1 else {})}
+
+class Band(Adapter):
+    name = "BAND"; job = "post case updates into a BAND room with the Director as a participant"
+    env = ("VIGIL_BAND_API_KEY", "VIGIL_BAND_PY")
+    def real(self, action, p):
+        script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "integrations", "band_post.py")
+        r = subprocess.run([os.environ["VIGIL_BAND_PY"], script], input=json.dumps({"text": p.get("text", "Vigil case update")}),
+                           capture_output=True, text=True, timeout=45, env=os.environ)
+        if r.returncode != 0: raise RuntimeError("band_post failed: " + (r.stderr.strip().splitlines() or ["?"])[-1][:140])
+        ev = json.loads(r.stdout.strip().splitlines()[-1])
+        if not ev.get("room"): raise RuntimeError("no room id in reply")
+        return ev
 
 class RepoSide(Adapter):
     """Prelint / Tenki run on a GitHub repo, not via a call we make. Real only as linked evidence."""
@@ -85,5 +102,5 @@ def registry():
     return {a.name: a for a in [N8n(), RocketRide(), Celesto(), Snyk(),
         RepoSide("Prelint", "PR compliance review of the agent spec", "VIGIL_PRELINT_EVIDENCE_URL"),
         RepoSide("Tenki", "CI runner for the test suite", "VIGIL_TENKI_EVIDENCE_URL"),
-        Plain("BAND", "shared agent/human channel"), Plain("PromptQL", "natural-language ledger queries"),
-        Plain("Flatkey", "credential gateway"), Plain("Paritok", "usage metering"), Plain("Masky", "avatar for Faye")]}
+        Band(), Plain("PromptQL", "natural-language ledger queries"),
+        Plain("Flatkey", "model API / failover gateway (not a key vault)"), Plain("Paritok", "context/session compression (not metering)"), Plain("Masky", "avatar for Faye")]}

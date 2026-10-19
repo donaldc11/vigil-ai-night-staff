@@ -3,7 +3,7 @@ import re, os, json, hmac, hashlib, secrets, sqlite3, time, datetime
 import adapters, lint as L
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-GPL = json.load(open(os.path.join(HERE, "data", "gpl.json")))
+with open(os.path.join(HERE, "data", "gpl.json")) as _f: GPL = json.load(_f)
 STAFF = [("Mara","Intake"),("Quinn","Quoter"),("Sol","Scheduler"),("Paige","Paperwork"),("Faye","Family Liaison"),("Lex","Compliance Logger")]
 MAX_INPUT = 2000
 _SECRET = secrets.token_bytes(32)
@@ -43,7 +43,8 @@ def intake(text):
     pref = "cremation" if re.search(r"cremat", text, re.I) else "burial" if re.search(r"\b(burial|bury|buried)\b", text, re.I) else "unknown"
     m = re.search(r"\b(\+?1?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})\b", text)
     phone_last4 = re.sub(r"\D", "", m.group(1))[-4:] if m else None
-    return {"first_call": first, "preference": pref, "callback_last4": phone_last4}
+    loc = "home" if re.search(r"\bat home\b|\bin (his|her|their) (bed|sleep)", text, re.I) else "facility" if re.search(r"hospital|hospice|nursing|care home|facility", text, re.I) else "unknown"
+    return {"first_call": first, "preference": pref, "callback_last4": phone_last4, "location": loc}
 
 def quote(pref):
     k = {"cremation": "direct_cremation", "burial": "immediate_burial"}.get(pref)
@@ -54,13 +55,21 @@ def paperwork(case_id, info):
     return {"case_id": case_id, "forms": ["death certificate worksheet", "burial/cremation permit checklist", "SSA notice draft", "VA notice draft"],
             "prefilled": {"preference": info["preference"]}, "blank_for_family": ["legal name", "date/place of death", "SSN", "next of kin"]}
 
-def schedule(now):
-    cb = (now + datetime.timedelta(days=1)).replace(hour=7, minute=0, second=0, microsecond=0)
-    return {"callback": cb.isoformat(), "ics": "BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Family callback (FICTIONAL)\nDTSTART:%s\nEND:VEVENT\nEND:VCALENDAR\n" % cb.strftime("%Y%m%dT%H%M%S")}
+def schedule(now, location="unknown"):
+    """Callback at the next 7:00 AM: today if it is before 7:00, otherwise tomorrow (a 2 AM call must not wait an extra day)."""
+    cb = now.replace(hour=7, minute=0, second=0, microsecond=0)
+    if now >= cb: cb += datetime.timedelta(days=1)
+    removal = "removal team on standby tonight" if location == "home" else "confirm release with the facility in the morning" if location == "facility" else "ask where the loved one is at the callback"
+    return {"callback": cb.isoformat(), "removal_plan": removal, "ics": "BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Family callback (FICTIONAL)\nDTSTART:%s\nEND:VEVENT\nEND:VCALENDAR\n" % cb.strftime("%Y%m%dT%H%M%S")}
 
 class Ledger:
     def __init__(s, path=":memory:"):
         s.db = sqlite3.connect(path); s.db.execute("CREATE TABLE IF NOT EXISTS events(case_id TEXT, ts REAL, who TEXT, phase TEXT, msg TEXT)")
+    def lessons(s):
+        s.db.execute("CREATE TABLE IF NOT EXISTS lessons(rule TEXT PRIMARY KEY, note TEXT, ts REAL)")
+        return {r[0]: r[1] for r in s.db.execute("SELECT rule,note FROM lessons")}
+    def learn(s, rule, note):
+        s.lessons(); s.db.execute("INSERT OR IGNORE INTO lessons VALUES(?,?,?)", (rule, note, time.time())); s.db.commit()
     def add(s, case_id, who, phase, msg): s.db.execute("INSERT INTO events VALUES(?,?,?,?,?)", (case_id, time.time(), who, phase, msg)); s.db.commit()
     def rows(s, case_id): return s.db.execute("SELECT who,phase,msg FROM events WHERE case_id=? ORDER BY rowid", (case_id,)).fetchall()
     def count(s): return s.db.execute("SELECT count(*) FROM events").fetchone()[0]
@@ -81,35 +90,52 @@ def run(call_text, director=None, ledger=None, outdir=None, reg=None, now=None, 
     if text is None:
         step("Mara", "delegate", "Rejected: empty or non-text input. No action taken."); return _finish(case_id, trace, calls, local_real, "rejected", outdir)
     info = intake(text); local_real.add("Mara: rule-based intake")
+    learned = ledger.lessons()
     rr = use("RocketRide", "intake_pipeline", {"text": redact(text)})
-    step("Mara", "delegate", f"first_call={info['first_call']} preference={info['preference']}. Routing to Quinn, Sol, Paige.", **info)
-    if not info["first_call"]:
+    if rr.mode == "real" and isinstance(rr.evidence.get("classification"), dict):   # a real engine's answer overrides ours
+        info.update({k: v2 for k, v2 in rr.evidence["classification"].items() if k in info}); local_real.add("Mara: used RocketRide classification")
+    handoff = {**info, "ask_callback_first": "ask_callback_number_first" in learned, "case_id": case_id}   # the ONLY thing Quinn, Sol, Paige receive
+    step("Mara", "delegate", f"first_call={info['first_call']} preference={info['preference']} location={info['location']}"
+         + (" (applying lesson: ask for a callback number first)" if handoff["ask_callback_first"] else "") + ". Routing to Quinn, Sol, Paige.", **info)
+    if not handoff["first_call"]:
         step("Lex", "report", "Non-urgent call logged. No dispatch, no arrangements discussed."); local_real.add("Lex: ledger (sqlite)")
         return _finish(case_id, trace, calls, local_real, "non_urgent", outdir)
-    q = quote(info["preference"]); use("PromptQL", "price_query"); use("Paritok", "meter"); local_real.add("Quinn: GPL price lookup from data/gpl.json")
-    step("Quinn", "act", "Prepared GPL price range (informational, not a contract).", quote=q)
-    sc = schedule(now); local_real.add("Sol: callback .ics generated")
-    step("Sol", "act", f"Proposed 7:00 AM callback ({sc['callback']}).")
-    pw = paperwork(case_id, info); local_real.add("Paige: paperwork packet JSON")
-    use("Flatkey", "get_key"); cel = use("Celesto", "validate_paperwork", {"json": json.dumps(pw)})
+    q = quote(handoff["preference"]); use("PromptQL", "price_query"); use("Paritok", "compress_context"); local_real.add("Quinn: GPL price lookup from data/gpl.json")
+    step("Quinn", "act", "Prepared GPL price range for the stated preference (informational, not a contract).", quote=q)
+    sc = schedule(now, handoff["location"]); local_real.add("Sol: callback .ics generated")
+    step("Sol", "act", f"Callback {sc['callback']}; {sc['removal_plan']}.")
+    pw = paperwork(case_id, handoff); local_real.add("Paige: paperwork packet JSON")
+    if not handoff["callback_last4"]: pw["blank_for_family"].append("callback phone number")
+    use("Flatkey", "route_model_call"); cel = use("Celesto", "validate_paperwork", {"json": json.dumps(pw)})
     step("Paige", "act", "Pre-filled paperwork packet; family-only fields left blank.", paperwork=pw)
     issues = L.lint(FAMILY_MSG); local_real.add("Lex: local compliance lint")
     use("Prelint", "review_spec")
     step("Lex", "check", "Compliance lint passed." if not issues else f"BLOCKED: {issues}", issues=issues)
     if issues: return _finish(case_id, trace, calls, local_real, "blocked_by_lint", outdir)
+    # security gate: a REAL Snyk scan that finds vulnerabilities blocks dispatch. Simulated/fallback does not gate (and is labeled so).
+    sn = use("Snyk", "scan")
+    if sn.mode == "real" and not sn.evidence.get("ok", False):
+        step("Lex", "check", "BLOCKED by security scan: vulnerabilities found.", scan=sn.evidence); return _finish(case_id, trace, calls, local_real, "blocked_by_security", outdir)
     # approval gates: each action is only reachable with a matching Approval
     a1 = director.decide("send_family_message", case_id, {"msg": FAMILY_MSG})
-    a2 = director.decide("dispatch_removal_team", case_id, {"callback": sc["callback"], "preference": info["preference"]}) if a1 else None
+    a2 = director.decide("dispatch_removal_team", case_id, {"callback": sc["callback"], "preference": handoff["preference"]}) if a1 else None
     if not (a1 and a2):
         step("Director", "approval", "Director declined. Nothing sent, nothing dispatched."); return _finish(case_id, trace, calls, local_real, "declined", outdir)
     step("Director", "approval", "Director approved family message and removal dispatch.")
-    require("dispatch_removal_team", case_id, {"callback": sc["callback"], "preference": info["preference"]}, a2)
-    n8 = use("n8n", "dispatch_workflow", {"case_id": case_id, "preference": info["preference"], "callback": sc["callback"]})
-    step("Sol", "act", "Dispatch workflow triggered.")
+    require("dispatch_removal_team", case_id, {"callback": sc["callback"], "preference": handoff["preference"]}, a2)
+    n8 = use("n8n", "dispatch_workflow", {"case_id": case_id, "preference": handoff["preference"], "callback": sc["callback"]})
+    step("Sol", "act", "Dispatch ticket sent to the dispatch workflow (a workflow round trip; no real removal team exists in this build).")
     require("send_family_message", case_id, {"msg": FAMILY_MSG}, a1); use("Masky", "avatar")
     step("Faye", "act", "Approved message recorded for delivery (no real call or text is placed in this build).", message=FAMILY_MSG)
-    use("Snyk", "scan"); use("Tenki", "ci"); use("BAND", "post")
-    step("Lex", "report", "Case logged: disclosure given, approvals, quote shown."); step("Mara", "improve", "Intake checklist: confirm spelling of the deceased's name once, early.")
+    use("Tenki", "ci")
+    bd = use("BAND", "post", {"text": f"Case {case_id} ({handoff['preference']}, {handoff['location']}): approved, callback {sc['callback']}. (FICTIONAL)"})
+    ticket = n8.evidence.get("ticket") if n8.mode == "real" else None
+    step("Lex", "report", "Case logged: disclosure given, approvals, quote shown." + (f" Workflow ticket at {ticket['dispatched_at']}." if ticket else " Workflow ticket: simulated.")
+         + (f" BAND room {bd.evidence['room']}." if bd.mode == "real" else ""), ticket=ticket)
+    if not handoff["callback_last4"]:
+        ledger.learn("ask_callback_number_first", "caller gave no callback number; ask for it first"); note = "Learned and saved: ask for a callback number first on the next call."
+    else: note = "No new lesson this case."
+    step("Mara", "improve", note, lessons=sorted(ledger.lessons()))
     return _finish(case_id, trace, calls, local_real, "completed", outdir, artifacts={"paperwork.json": json.dumps(pw, indent=1), "callback.ics": sc["ics"], "family_message.txt": FAMILY_MSG})
 
 def _finish(case_id, trace, calls, local_real, outcome, outdir, artifacts=None):

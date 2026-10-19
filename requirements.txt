@@ -1,1 +1,3 @@
-# stdlib only; no third-party runtime dependencies
+# Core Vigil needs only the stdlib. These are the optional real-mode SDKs (pinned).
+rocketride==1.4.0
+celesto==0.0.14
