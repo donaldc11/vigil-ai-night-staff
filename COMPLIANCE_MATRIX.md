@@ -3,7 +3,7 @@ Status key: REAL = invoked and answered; LOCAL = our own real code, no vendor; S
 
 | Rule / checklist item | Evidence | Status |
 |---|---|---|
-| Solo or team up to 4 humans | 1 human Director (human) | MET |
+| Solo or team up to 4 humans | 1 human Director | MET |
 | AI-native company, humans + AI as co-founders/employees | vigil.py STAFF + Director | MET |
 | 5+ AI employees, each with role, outputs, reporting line | 6 agents in vigil.STAFF, all report to Director; outputs: intake record, quote, .ics, paperwork.json, lint verdict, ledger | MET (LOCAL logic) |
 | Full loop: request, delegate, act, check, report, improve | vigil.run trace phases; tests TestLoop.test_full_loop | MET |
@@ -20,7 +20,7 @@ Status key: REAL = invoked and answered; LOCAL = our own real code, no vendor; S
 | n8n | dispatch workflow on approved first call | adapters.N8n POST webhook; tested vs local stub (not n8n) | SIMULATED until VIGIL_N8N_WEBHOOK_URL set; then REAL |
 | Prelint | compliance review of agent spec/PR | repo-side; operator links evidence | SIMULATED until PR review URL exists -> EXTERNAL. Local lint.py is ours, not Prelint |
 | Tenki | CI runs the test suite | repo-side evidence URL | SIMULATED -> EXTERNAL |
-| Snyk | security scan gate | adapters.Snyk (snyk CLI + token) | SIMULATED; CLI not installed here |
+| Snyk | dependency vulnerability scan on pinned deps; real findings (exit 1) block dispatch, runs before the approval gates | REAL | e2e 11:24: scan ran via Snyk API, exit 0 (no vulns), Snyk CLI v1.1308. Gate logic also tested with a test double |
 | RocketRide | intake pipeline | adapters.RocketRide via SDK; needs an engine (no Docker here) and a .pipe file | SIMULATED; pipeline not written/verified against live engine |
 | Celesto | sandbox-validate paperwork | adapters.Celesto (API key) | SIMULATED; no key; local SmolVM needs KVM, absent |
 | BAND, PromptQL, Flatkey, Paritok, Masky | channel / ledger queries / key gateway / metering / avatar | none | SIMULATED; no verified API built |
