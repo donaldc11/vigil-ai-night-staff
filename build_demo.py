@@ -15,58 +15,58 @@ def detail(c):
     if s == "BAND": return "case update posted to a BAND room"
     if s == "Paritok": return "OpenAI calls routed through the Paritok gateway (%s requests; tokens saved: %s)" % (e.get("requests_through_gateway"), e.get("tokens_saved"))
     if s == "Glasser": return "live balance check plus one recorded research run ($%s)" % (e.get("recorded_research_run", {}).get("charge_usd"))
-    if s == "Prelint": return "PR review ran repo-side"
+    if s == "Prelint": return "PR review ran repo-side (link)"
     return c["reason"]
-def calls(r):
-    out = []
-    for c in r["sponsor_calls"]:
-        s, evidence = c["sponsor"], c.get("evidence") or {}
-        link = evidence.get("url") or evidence.get("ci_run_url") or ""
-        if s == "Prelint": link = os.environ.get("VIGIL_PRELINT_EVIDENCE_URL", "https://github.com/donaldc11/vigil-ai-night-staff/pull/1")
-        if s == "Tenki": link = os.environ.get("VIGIL_TENKI_EVIDENCE_URL", "https://github.com/donaldc11/vigil-ai-night-staff/actions/runs/39311833386")
-        out.append(dict(sponsor=s, action=c["action"], mode=c["mode"].upper(), reason=detail(c), link=link))
-    return out
+def calls(r): return [dict(sponsor=c["sponsor"], action=c["action"], mode=c["mode"].upper(), reason=detail(c), link=((c.get("evidence") or {}).get("url") or (c.get("evidence") or {}).get("ci_run_url") or "")) for c in r["sponsor_calls"]]
 import base64
 AV = {"Mara": "mara", "Quinn": "quinn", "Sol": "sol", "Paige": "paige", "Faye": "faye", "Vera": "vera"}
 IMG = {k: "data:image/jpeg;base64," + base64.b64encode(open(f"avatars/{v}.jpg", "rb").read()).decode() for k, v in AV.items()}
-data = json.dumps({"home": vigil.GPL["home"], "img": IMG, "voice": {k: v for k, v in {"Mara": "mara", "Quinn": "quinn", "Sol": "sol", "Paige": "paige", "Faye": "faye", "Vera": "vera"}.items()}, "office": {"Mara": "Front office", "Faye": "Front office", "Quinn": "Back office", "Sol": "Back office", "Paige": "Back office", "Vera": "Back office"}, "staff": [{"name": n, "role": r, "color": COL[i]} for i, (n, r) in enumerate(vigil.STAFF)],
+
+import llm, lint as _lint, json as _json
+TEMPLATE_WORDS = {"opener": "Hello, this is the director from Maple Grove. I am calling about your father. I am so sorry for your loss.", "lines": ["I am so sorry. Thank you for calling us tonight.", "There is no rush on anything. We can go at your pace.", "Is there someone with you right now?", "When you are ready, we will go through the next steps together."]}
+def words_for_call():
+    """Faye proposes optional prompts; Vera's deterministic call-lines lint filters them. Source is recorded honestly."""
+    src, raw, rejected, calls = "template", None, 0, []
+    try:
+        bud = llm.Budget()
+        r = bud.chat("faye_call_words", "You are Faye, a warm family liaison at a funeral home, quietly preparing optional prompts for the funeral director, who is an experienced professional. Reply with ONLY JSON: {\"opener\": str, \"lines\": [4 str]}. Write in the first person as the director calling a family back at 7:00 AM; the caller's father died at home overnight and the family leaned toward cremation. The opener starts with 'Good morning, this is the director from Maple Grove.' and gently acknowledges the loss. The 4 lines are short, human and unhurried: one that acknowledges the loss, one that says there is no rush, one that asks if someone is with them, one that invites them to share about their father if they wish. Each under 130 characters. No promises, no prices or packages, no euphemisms like sleeping or better place, no arrangements, no coaching tone.", "Write the opener and lines.", max_tokens=260)
+        d = _json.loads(r[r.index("{"):r.rindex("}") + 1])
+        ops = [d.get("opener", "")] + list(d.get("lines", []))
+        good = [x for x in ops if not _lint.lint_call_line(x)]
+        rejected = len(ops) - len(good)
+        if d.get("opener") in good and len(good) >= 4:
+            raw = {"opener": d["opener"], "lines": [x for x in good if x != d["opener"]][:4]}; src = "model"; calls = bud.calls
+    except Exception as e:
+        src = "template"
+    out = raw or TEMPLATE_WORDS
+    assert all(not _lint.lint_call_line(x) for x in [out["opener"]] + out["lines"])
+    return dict(out, source=src, rejected=rejected, model=(calls[0]["model"] if calls else None))
+WORDS = words_for_call()
+print("words for call source:", WORDS["source"], "rejected by lint:", WORDS["rejected"])
+data = json.dumps({"words": WORDS, "home": vigil.GPL["home"], "img": IMG, "voice": {k: v for k, v in {"Mara": "mara", "Quinn": "quinn", "Sol": "sol", "Paige": "paige", "Faye": "faye", "Vera": "vera"}.items()}, "office": {"Mara": "Front office", "Faye": "Front office", "Quinn": "Back office", "Sol": "Back office", "Paige": "Back office", "Vera": "Back office"}, "staff": [{"name": n, "role": r, "color": COL[i]} for i, (n, r) in enumerate(vigil.STAFF)],
     "yes": {"trace": yes["trace"], "calls": calls(yes), "outcome": yes["outcome"]}, "no": {"trace": no["trace"], "calls": calls(no), "outcome": no["outcome"]},
     "ts": datetime.datetime.now().strftime("%b %d %Y %H:%M local")})
-page = """<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Vigil - AI night staff (FICTIONAL demo)</title><style>
-body{font:15px system-ui;margin:0;background:#12151a;color:#e8e8e8}header{padding:16px 24px;background:#1b2028}
-.banner{background:#7a4b00;color:#fff;padding:8px 24px;font-weight:600}
-main{display:grid;grid-template-columns:260px 1fr 340px;gap:16px;padding:16px}@media(max-width:900px){main{grid-template-columns:1fr}}
-a{color:#7db7ff}.card{background:#1b2028;border-radius:10px;padding:12px;margin-bottom:10px}
-.av{display:inline-block;width:34px;height:34px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;background:#555}.pl{background:#2a3340;color:#e8e8e8;border:0;border-radius:6px;padding:2px 8px;cursor:pointer}.handoff{border-left:3px solid #4aa3ff;background:#161c24;padding:6px 10px;margin:4px 0 4px 18px;border-radius:6px}.bigav{width:64px;height:64px;border-radius:12px;object-fit:cover;float:left;margin-right:10px}.cap{color:#9aa;font-size:11px}
-.msg{border-left:4px solid #444;padding:8px 12px;margin:8px 0;background:#1b2028;border-radius:6px}
-.approval{border-color:#e0b000}.check{border-color:#4aa3ff}.request{border-color:#ccc}.improve{border-color:#55d68a}
-.tag{font-size:11px;text-transform:uppercase;opacity:.7}button{padding:10px 18px;border:0;border-radius:8px;font-weight:700;cursor:pointer;margin-right:8px}
-.go{background:#55d68a}.deny{background:#e06060;color:#fff}small{opacity:.75}.REAL{color:#55d68a}.EXTERNAL{color:#4aa3ff}.FALLBACK{color:#e0b000}</style>
-<div class=banner>FICTIONAL DATA. This page REPLAYS two recorded runs (recorded __TS__, simulated clock 2:10 AM). Sponsor modes are as recorded: REAL / EXTERNAL / SIMULATED / FALLBACK. No real call is placed, no real person is involved.</div>
-<header><b>Vigil</b> - AI night staff for funeral homes &middot; <span id=home></span> &middot; <button class=go id=play>Start the 2:10 AM call</button></header>
-<main><div><h3>Org chart</h3><div class=card><b>Director (human)</b><br><small>approves family messages and dispatch</small></div><div id=staff></div>
-<div class=card><small>Six LLM-driven agents (OpenAI gpt-4o-mini, $3 cap): each makes one decision plus a short in-character line. The gates, prices, callback time and approvals are deterministic code, and the Director (human) approves. Front office: Mara, Faye. Back office: Quinn, Sol, Paige, Vera. Avatars and voices are AI-generated and fictional.</small></div></div>
-<div><h3>Night desk</h3><div id=feed></div></div>
-<div><h3>Sponsor tools (as recorded)</h3><div id=calls></div></div></main>
-<script>const VP=location.pathname.endsWith('demo.html')?'site/voice/':'voice/';const D=__DATA__;home.textContent=D.home;
-const col=Object.fromEntries(D.staff.map(s=>[s.name,s.color]));
-staff.innerHTML=D.staff.map(s=>`<div class=card><img class=bigav src="${D.img[s.name]}" alt="${s.name}"><b>${s.name}</b> ${s.role}<br><small>reports to Director</small><br><span class=cap>${D.office[s.name]} &middot; LLM-driven (gpt-4o-mini)</span><br><button class=pl onclick="sayit('${s.name}',this)">&#9654; voice</button> <span class=cap>portrait generated in Masky (AI, fictional), no runtime API call &middot; voice: OpenAI TTS (AI-generated)</span><div style=clear:both></div></div>`).join('');
-let au=null;function sayit(n,b){if(au)au.pause();au=new Audio(VP+D.voice[n]+".mp3");au.play();}
-const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-function card(t){if(t.phase=='handoff')return `<div class="msg handoff"><span class=tag>handoff</span> <b>${esc(t.msg)}</b><br><small>passes: ${esc((t.fields||[]).join(', '))} &middot; ${esc(t.evidence||'')}</small></div>`;let ex=t.quote?`<br><small>`+Object.entries(t.quote).map(([k,v])=>esc(k.replace(/_/g,' '))+': $'+v).join(' | ')+`</small>`:'';
-return `<div class="msg ${t.phase}"><span class=tag>${t.phase}</span><br><img class=av src="${D.img[t.who]||''}" alt=""><b>${t.who}</b>: ${esc(t.msg)}${ex}</div>`}
-function showCalls(list,final,b){const got=Object.fromEntries(list.map(c=>[c.sponsor,c]));
-calls.innerHTML=D.yes.calls.map(c=>{const g=got[c.sponsor];if(g)return `<div class=card><b>${g.sponsor}</b> <small>${g.action} [<span class=${g.mode}>${g.mode}</span>]</small><br><small>${esc(g.reason||'')}${g.link&&/^https:\/\/github\.com\//.test(g.link)?` &middot; <a href="${esc(g.link)}" target=_blank rel=noopener>evidence link</a>`:''}</small></div>`;
-return `<div class=card style=opacity:.45><b>${c.sponsor}</b> <small>${final?'not reached (Director denied before this step)':'waiting for its step in this case'}</small></div>`}).join('')}
-const PRE=D.yes.calls.findIndex(c=>c.sponsor=='n8n');showCalls([],false);let i=0,branch=null;const A=D.yes.trace;const gate=A.findIndex(t=>t.phase=='approval');
-function step(){if(i<gate){feed.insertAdjacentHTML('beforeend',card(A[i++]));showCalls(D.yes.calls.slice(0,Math.ceil(i*PRE/gate)),false);setTimeout(step,800);return}
-feed.insertAdjacentHTML('beforeend',`<div class="msg approval"><span class=tag>approval needed</span><br><b>Director</b>: Approve sending the family message and dispatching the removal team?<br><br><button class=go id=ap>Approve</button><button class=deny id=dn>Deny</button></div>`);
-ap.onclick=()=>fin('yes');dn.onclick=()=>fin('no')}
-function fin(b){ap.disabled=dn.disabled=true;const T=D[b].trace;let j=gate;showCalls(D[b].calls,true);
-(function n(){if(j>=T.length)return;feed.insertAdjacentHTML('beforeend',card(T[j++]));setTimeout(n,700)})()}
-play.onclick=()=>{feed.innerHTML='';i=0;showCalls([],false);step()};</script>"""
+page = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "site_template.html")).read()
 page = page.replace("__DATA__", data).replace("__TS__", json.loads(data)["ts"])
+import sys
+_m = [c["mode"] for c in yes["sponsor_calls"]]
+_need = (int(os.environ.get("VIGIL_MIN_REAL", "0" if os.environ.get("VIGIL_ALLOW_SIM") else "7")), int(os.environ.get("VIGIL_MIN_EXTERNAL", "0" if os.environ.get("VIGIL_ALLOW_SIM") else "1")))
+print("recorded modes: real", _m.count("real"), "external", _m.count("external"), "simulated", _m.count("simulated"), "fallback", _m.count("fallback"))
+if _m.count("real") < _need[0] or _m.count("external") < _need[1] or _m.count("fallback"):
+    sys.exit("BUILD GUARD: recorded modes regressed (need real>=%d external>=%d fallback=0); nothing written. Check keys / leftover sandboxes." % _need)
 os.makedirs("site", exist_ok=True)
-for p in ("site/index.html", "demo.html"):
+import shutil, html
+os.makedirs("site/img", exist_ok=True)
+for v in AV.values(): shutil.copy(f"avatars/{v}.jpg", f"site/img/{v}.jpg")
+BLURB = {"Mara": "Answers the call, gently, and hands a structured brief to the back office.", "Quinn": "Quotes from the General Price List. Prices always come from the list, never the model.", "Sol": "Plans the overnight callback and the removal team's standby.", "Paige": "Pre-fills the paperwork and leaves the family's own fields blank.", "Faye": "Writes the careful family message, bound to the Director's approval.", "Vera": "Checks every word for compliance and keeps the books: quoted, not invoiced."}
+team = "".join('<div class=tc id=t-%s onclick="tc(\'%s\')"><div class=ph><img src="img/%s.jpg" alt="%s"><video src="clips/%s.mp4" playsinline preload=none></video><button class=play>&#9654; Hear %s</button></div><div class=bd><div class=rl>%s &middot; %s</div><h4>%s</h4><p>%s</p><small>LLM-driven (gpt-4o-mini). Portrait and clip: Masky, AI-generated.</small></div></div>' % (n, n, AV[n], n, AV[n], n, dict(vigil.STAFF)[n], "Front office" if n in ("Mara", "Faye") else "Back office", n, BLURB[n]) for n in AV)
+rows = {}
+for c in yes["sponsor_calls"]: rows.setdefault(c["sponsor"], c)
+score = "".join("<tr><td><b>%s</b></td><td><span class='m %s'>%s</span></td><td>%s</td></tr>" % (html.escape(s), c["mode"].upper(), c["mode"].upper(), html.escape(detail(c))) for s, c in sorted(rows.items(), key=lambda kv: ({"real": 0, "external": 1}.get(kv[1]["mode"], 2), kv[0])))
+modes = [c["mode"] for c in rows.values()]
+tally = "".join("<div><b>%d</b>%s</div>" % (modes.count(m), m.upper()) for m in ("real", "external", "simulated", "fallback") if modes.count(m))
+land = open("site_landing.html").read().replace("__TEAM__", team).replace("__TALLY__", tally).replace("__SCORE__", score)
+open("site/index.html", "w").write(land)
+for p in ("site/dashboard.html", "demo.html"):
     with open(p, "w") as f: f.write(page)
 print("built", yes["outcome"], no["outcome"], "gate index", [t["phase"] for t in yes["trace"]].index("approval"))

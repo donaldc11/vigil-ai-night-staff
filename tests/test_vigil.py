@@ -376,4 +376,15 @@ class TestWorkerDecisions(TestLLM):
         OAI.replies = ['{"first_call": true, "preference": "cremation", "location": "home"}', GOOD_MSG]; self.assertEqual(vigil.run(CALL, NO)["outcome"], "declined")
 
 
+
+class TestCallWords(unittest.TestCase):
+    def test_good_lines_pass(self):
+        import lint
+        for s in ["I am so sorry for the loss of your father.", "Take all the time you need. There is no rush on anything tonight.", "Is there someone with you right now?"]:
+            self.assertEqual(lint.lint_call_line(s), [], s)
+    def test_bad_lines_fail(self):
+        import lint
+        for s in ["I promise everything will be fine.", "Our cremation package costs $2,995.", "He is sleeping now, in a better place.", "Don't worry, we will arrange the service.", "x" * 200, ""]:
+            self.assertTrue(lint.lint_call_line(s), s)
+
 if __name__ == "__main__": unittest.main(verbosity=1)

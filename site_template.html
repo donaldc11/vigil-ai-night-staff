@@ -1,0 +1,137 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Vigil - AI night staff (FICTIONAL demo)</title><style>
+:root{--bg:#0b0e13;--panel:#141922;--line:#222b38;--fg:#e8ecf1;--dim:#8d99a8;--gold:#f0b429;--green:#55d68a;--red:#e06060;--blue:#4aa3ff}
+*{box-sizing:border-box}body{font:15px system-ui,sans-serif;margin:0;background:radial-gradient(1200px 600px at 50% -10%,#16202e,#0b0e13);color:var(--fg);min-height:100vh}
+.banner{background:#7a4b00;color:#fff;padding:8px 24px;font-weight:600;font-size:13px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line)}
+header h1{font-size:22px;margin:0;letter-spacing:.5px}header small{color:var(--dim)}
+.ctl{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{padding:10px 18px;border:0;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit}
+.go{background:var(--green);color:#06210f}.alt{background:#2a3446;color:var(--fg)}.deny{background:var(--red);color:#fff}
+button:disabled{opacity:.4;cursor:default}
+.clock{font:600 13px ui-monospace,monospace;color:var(--dim)}
+.saved{font-size:12px;color:var(--dim);border:1px dashed #33405a;border-radius:8px;padding:6px 10px}.saved b{color:var(--gold);font-size:15px}
+main{padding:16px 24px;max-width:1500px;margin:0 auto}
+.boardwrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,#101620,#0d1219)}
+.board{position:relative;min-width:820px;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(3,150px);gap:6px;padding:28px 14px 14px}
+.lane{position:absolute;top:6px;font-size:10px;letter-spacing:2px;color:#566377;text-transform:uppercase}
+svg.lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}svg.lines line{stroke:#223045;stroke-width:2;stroke-dasharray:4 6}
+.node{position:relative;z-index:2;align-self:center;justify-self:center;width:150px;text-align:center;padding:8px;border-radius:14px;background:var(--panel);border:1px solid var(--line);transition:box-shadow .3s,border-color .3s,transform .3s}
+.node img,.node .ini{width:54px;height:54px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 4px;background:#2a3446;line-height:54px;font-weight:700;font-size:22px;color:#9fb0c6}
+.node b{display:block;font-size:14px}.node .rl{font-size:11px;color:var(--dim)}.node .st{font-size:11px;margin-top:4px;min-height:28px;color:#a9b6c7}
+.node.working{border-color:var(--blue);box-shadow:0 0 22px #4aa3ff66;transform:scale(1.06)}.node.working .st{color:var(--blue)}
+.node.done{border-color:#2f6f4a}.node.done .st{color:var(--green)}
+.node.waiting{border-color:var(--gold);box-shadow:0 0 30px #f0b429aa;animation:pulse 1.2s infinite}.node.waiting .st{color:var(--gold)}
+.node.denied{border-color:var(--red);box-shadow:0 0 22px #e0606088}.node.denied .st{color:var(--red)}
+@keyframes pulse{50%{box-shadow:0 0 6px #f0b42955}}
+.pkt{position:absolute;z-index:5;width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px 4px #f0b429aa;pointer-events:none}
+.cols{display:grid;grid-template-columns:300px 1fr 340px;gap:16px;margin-top:16px}@media(max-width:1000px){.cols{grid-template-columns:1fr}}
+h3{margin:0 0 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--dim)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.kan{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.kcol{background:#0f141c;border:1px solid var(--line);border-radius:8px;min-height:110px;padding:4px}.kcol h4{margin:0 0 4px;font-size:9px;letter-spacing:1px;color:#6b7a90;text-transform:uppercase}
+.case{background:#1e2a3c;border-left:3px solid var(--blue);border-radius:6px;padding:6px;font-size:11px;animation:drop .5s}.case.gold{border-color:var(--gold)}.case.ok{border-color:var(--green)}.case.bad{border-color:var(--red)}
+@keyframes drop{from{opacity:0;transform:translateY(-12px)}}
+.queue{border:1px solid var(--line);border-radius:10px;padding:12px;background:#10151d;margin-top:10px}.queue.live{border-color:var(--gold);box-shadow:0 0 28px #f0b42955;animation:pulse 1.4s infinite}
+.queue ul{margin:6px 0 10px 16px;padding:0;font-size:12.5px;color:#cbd5e1}.queue li{margin:3px 0}
+#feed{max-height:560px;overflow:auto;padding-right:4px}
+.msg{border-left:4px solid #444;padding:8px 12px;margin:6px 0;background:var(--panel);border-radius:6px;animation:slide .45s}@keyframes slide{from{opacity:0;transform:translateX(-14px)}}
+.msg.handoff{border-color:#7a5cff;padding:5px 12px;font-size:13px}.approval{border-color:var(--gold)}.check{border-color:var(--blue)}.request{border-color:#ccc}.improve{border-color:var(--green)}.books{border-color:#b8860b}
+.tag{font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:.7}
+.av{display:inline-block;width:30px;height:30px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;background:#555}
+small{color:var(--dim)}.REAL{color:var(--green)}.EXTERNAL{color:var(--blue)}.FALLBACK{color:var(--gold)}
+.payoff{margin:12px 0;padding:18px;border-radius:12px;background:linear-gradient(135deg,#12261c,#101a28);border:1px solid #2f6f4a;animation:slide .8s}.payoff.no{background:#241517;border-color:#6b2c2c}.payoff h2{margin:0 0 8px;font-size:18px}.payoff li{margin:4px 0}
+.wfc{background:#0f141c;border:1px solid var(--line);border-radius:8px;padding:8px 12px}.wfc summary{cursor:pointer;color:#cbd5e1;font-size:13px}.wfc small{color:var(--dim)}.wrow{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line);font-size:13px;color:#cbd5e1}
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:16px}
+.roster .card{display:grid;grid-template-columns:64px 1fr;gap:10px}.roster img.bigav{width:64px;height:64px;border-radius:10px;object-fit:cover}.pl{background:#2a3446;color:var(--fg);border:0;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:12px}
+video.clip{display:none;width:100%;grid-column:1/3;border-radius:8px}
+#intro{position:fixed;inset:0;z-index:50;background:radial-gradient(900px 500px at 50% 40%,#18202c,#05070a);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity 1s}
+#intro.gone{opacity:0;pointer-events:none}#intro p{font-size:clamp(20px,3.2vw,34px);line-height:1.4;max-width:760px;margin:10px auto;opacity:0;transition:opacity 1.2s}#intro p.on{opacity:1}#intro .t{font:600 14px ui-monospace,monospace;color:var(--gold);letter-spacing:3px}
+#intro .fine{font-size:12px;color:var(--dim)}
+</style>
+<div class=banner>FICTIONAL DATA. This page REPLAYS two recorded runs (recorded __TS__, simulated clock 2:10 AM). Sponsor modes are as recorded: REAL / EXTERNAL / SIMULATED / FALLBACK. No real call is placed, no real person is involved.</div>
+<div id=intro><div>
+<div class=t id=i0>2:07 AM &middot; MAPLE GROVE FUNERAL HOME (FICTIONAL)</div>
+<p id=i1>The Director is asleep. The office is dark.</p>
+<p id=i2>A phone rings. A family is having the worst night of their lives.</p>
+<p id=i3>Six AI employees are awake. Nothing moves without the Director's yes.</p>
+<p><button class=go id=begin style="opacity:1;font-size:17px;padding:14px 26px">Watch the night shift</button> <button class=alt id=beginN style="opacity:1;font-size:15px;padding:14px 18px">With narration (AI voice)</button> <button class=alt id=skip>Skip intro</button></p>
+<div class=fine>Illustrative story framing. All data, people, portraits and voices are fictional or AI-generated.</div></div></div>
+<header><h1><a href="index.html" style="color:inherit;text-decoration:none">Vigil</a></h1><small>AI night staff for funeral homes &middot; <span id=home></span></small>
+<div class=ctl><span class=clock id=clock>idle</span><div class=saved>Time saved (ILLUSTRATIVE, not measured): <b id=saved>0 min</b></div>
+<button class=alt id=narr>&#128266; Narration</button><button class=go id=play>Start the 2:10 AM call</button><button class=alt id=step>Step &#9654;</button></div></header>
+<main>
+<div class=boardwrap><div class=board id=board><div class=lane style=left:14px>Family</div><div class=lane style=left:20%>Front office</div><div class=lane style=left:40%>Back office</div><div class=lane style=left:60%>Check + draft</div><div class=lane style=left:80%>Human</div><svg class=lines id=lines></svg></div></div>
+<div class=cols>
+<div><h3>Case board</h3><div class=kan id=kan><div class=kcol id=k0><h4>Intake</h4></div><div class=kcol id=k1><h4>Back office</h4></div><div class=kcol id=k2><h4>Awaiting Director</h4></div><div class=kcol id=k3><h4>Closed</h4></div></div>
+<h3 style="margin-top:14px">Director approval queue</h3><div class=queue id=queue><small>Nothing waiting yet.</small></div></div>
+<div><h3>Live handoff feed</h3><div id=feed></div><div id=after></div></div>
+<div><h3>Sponsor tools (as recorded)</h3><div id=calls></div></div></div>
+<h3 style="margin-top:20px">The staff</h3><div class=roster id=staff></div>
+<div class=card style="margin-top:12px"><small>Six LLM-driven agents (OpenAI gpt-4o-mini, $3 cap): each makes one decision plus a short in-character line. The gates, prices, callback time and approvals are deterministic code, and the Director (human) approves. Front office: Mara, Faye. Back office: Quinn, Sol, Paige, Vera. Portraits are generated in Masky; voices and the narration are OpenAI TTS; all are AI-generated and fictional. The 2:07 AM opening, the time-saved counter and the morning summary are illustrative framing around the recorded run.</small></div>
+</main>
+<script>const VP=location.pathname.endsWith('demo.html')?'site/voice/':'voice/';const CP=VP.replace('voice','clips');const D=__DATA__;home.textContent=D.home;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const POS={Caller:[1,2],Mara:[2,2],Quinn:[3,1],Sol:[3,2],Paige:[3,3],Faye:[4,1],Vera:[4,3],Director:[5,2]};
+const ROLE=Object.fromEntries(D.staff.map(s=>[s.name,s.role]));ROLE.Caller='the family (fictional)';ROLE.Director='human';
+const STAT={Mara:'taking the call',Quinn:'quoting from the price list',Sol:'planning the callback',Paige:'pre-filling forms',Faye:'drafting the family message',Vera:'checking compliance'};
+const board=document.getElementById('board');
+Object.keys(POS).forEach(n=>{const d=document.createElement('div');d.className='node';d.id='n-'+n;d.style.gridColumn=POS[n][0];d.style.gridRow=POS[n][1];
+d.innerHTML=(D.img[n]?`<img src="${D.img[n]}" alt="${n}">`:`<div class=ini>${n[0]}</div>`)+`<b>${n}</b><div class=rl>${esc(ROLE[n]||'')}</div><div class=st>idle</div>`;board.appendChild(d)});
+const EDGES=[['Caller','Mara'],['Mara','Quinn'],['Mara','Sol'],['Mara','Paige'],['Quinn','Faye'],['Quinn','Vera'],['Sol','Faye'],['Sol','Vera'],['Paige','Vera'],['Faye','Vera'],['Faye','Director'],['Vera','Director']];
+function ctr(n){const b=board.getBoundingClientRect(),r=document.getElementById('n-'+n).getBoundingClientRect();return[r.left-b.left+r.width/2,r.top-b.top+r.height/2]}
+function drawLines(){lines.innerHTML=EDGES.map(e=>{const a=ctr(e[0]),b=ctr(e[1]);return `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`}).join('')}
+addEventListener('resize',drawLines);setTimeout(drawLines,50);
+function setN(n,c,t){const e=document.getElementById('n-'+n);if(!e)return;e.className='node '+c;e.querySelector('.st').textContent=t}
+function packet(a,b,d){const A=ctr(a),B=ctr(b),p=document.createElement('div');p.className='pkt';board.appendChild(p);
+p.animate([{left:A[0]-7+'px',top:A[1]-7+'px',opacity:1},{left:B[0]-7+'px',top:B[1]-7+'px',opacity:1}],{duration:d||750,easing:'ease-in-out',fill:'forwards'}).onfinish=()=>p.remove();setTimeout(()=>p.remove(),(d||750)+200)}
+staff.innerHTML=D.staff.map(s=>`<div class=card><img class=bigav src="${D.img[s.name]}" alt="${s.name}"><div><b>${s.name}</b> ${s.role}<br><small>reports to Director &middot; ${D.office[s.name]} &middot; LLM-driven (gpt-4o-mini)</small><br><button class=pl onclick="sayit('${s.name}')">&#9654; voice</button> <button class=pl id=cb-${s.name} style=display:none onclick="clip('${s.name}')">&#9654; Masky clip</button><br><small>portrait generated in Masky (AI, fictional), no runtime API call; clip: Masky avatar video with a Masky preset voice (AI-generated) &middot; voice: OpenAI TTS (AI-generated)</small></div><video class=clip id=v-${s.name} playsinline controls></video></div>`).join('');
+D.staff.forEach(s=>fetch(CP+s.name.toLowerCase()+'.mp4',{method:'HEAD'}).then(r=>{if(r.ok)document.getElementById('cb-'+s.name).style.display=''}).catch(()=>{}));
+function clip(n){const v=document.getElementById('v-'+n);if(!v.src)v.src=CP+n.toLowerCase()+'.mp4';v.style.display='block';v.play()}
+let au=null;function sayit(n){if(au)au.pause();au=new Audio(VP+D.voice[n]+".mp3");au.play();}
+const fq=q=>Object.entries(q).map(([k,v])=>k.replace(/_/g,' ')+': $'+v).join(' | ');
+function card(t){if(t.phase=='handoff')return `<div class="msg handoff"><span class=tag>handoff</span> <b>${esc(t.msg)}</b><br><small>passes: ${esc((t.fields||[]).join(', '))} &middot; ${esc(t.evidence||'')}</small></div>`;let ex=t.quote?`<br><small>${esc(fq(t.quote))}</small>`:'';
+return `<div class="msg ${t.phase}"><span class=tag>${t.phase}</span><br>${D.img[t.who]?`<img class=av src="${D.img[t.who]}" alt="">`:''}<b>${t.who}</b>: ${esc(t.msg)}${ex}</div>`}
+function showCalls(list,final){const got=Object.fromEntries(list.map(c=>[c.sponsor,c]));
+calls.innerHTML=D.yes.calls.map(c=>{const g=got[c.sponsor];if(g)return `<div class=card><b>${g.sponsor}</b> <small>${g.action} [<span class=${g.mode}>${g.mode}</span>]</small><br><small>${esc(g.reason||'')}${g.link&&/^https:\/\/github\.com\//.test(g.link)?` &middot; <a href="${esc(g.link)}" target=_blank rel=noopener style="color:#7db7ff">evidence link</a>`:''}</small></div>`;
+return `<div class=card style=opacity:.45><b>${c.sponsor}</b> <small>${final?'not reached (Director denied before this step)':'waiting for its step in this case'}</small></div>`}).join('')}
+const PRE=D.yes.calls.findIndex(c=>c.sponsor=='n8n');const A=D.yes.trace;const gate=A.findIndex(t=>t.phase=='approval');
+const TOTAL=gate+Math.max(D.yes.trace.length,D.no.trace.length)-gate;
+let ev=[],k=0,i=0,timer=null,state='idle',branch=null,applied=0,t0=0;
+function kan(col,cls){let c=document.getElementById('kc');if(!c){c=document.createElement('div');c.id='kc'}c.className='case '+(cls||'');c.innerHTML='<b>Case 1</b><br>cremation, at home<br><small>caller ***-0142</small>';document.getElementById('k'+col).appendChild(c)}
+function clockTxt(m){const t=2*60+10+m;return 'simulated clock '+('0'+Math.floor(t/60)%24).slice(-2)+':'+('0'+t%60).slice(-2)+' AM'}
+function saved(){const m=Math.round(95*Math.min(1,applied/TOTAL));document.getElementById('saved').textContent=m>=60?Math.floor(m/60)+'h '+m%60+'m':m+' min';clock.textContent=clockTxt(Math.round(applied*3))}
+function nodesDoneExcept(n){Object.keys(POS).forEach(x=>{const e=document.getElementById('n-'+x);if(x!=n&&e.classList.contains('working'))setN(x,'done','done')})}
+function apply(t){feed.insertAdjacentHTML('beforeend',card(t));feed.scrollTop=feed.scrollHeight;applied++;saved();
+const ph=t.phase;
+if(ph=='request'){setN('Caller','working','calling');packet('Caller','Mara');setN('Mara','working','taking the call');kan(0)}
+else if(ph=='delegate'){nodesDoneExcept('Mara');setN('Mara','working','routing to the back office');setN('Caller','done','waiting for a callback')}
+else if(ph=='handoff'){const nm=Object.keys(POS),fr=t.frm||'',to=nm.filter(n=>n!=fr&&(t.to||'').indexOf(n)>=0);setN(fr,'working','handing off the brief');to.forEach((n,x)=>setTimeout(()=>{packet(fr,n,650);setN(n,'working','received the brief')},x*200));kan(1)}
+else if(ph=='check'){nodesDoneExcept('Vera');setN('Vera','working',STAT.Vera);kan(1,'')}
+else if(ph=='approval'){nodesDoneExcept('Director');setN('Director',branch=='no'?'denied':'done',branch=='no'?'declined':'approved');packet('Vera','Director');kan(3,branch=='no'?'bad':'ok')}
+else{nodesDoneExcept(t.who);if(STAT[t.who])setN(t.who,'working',(branch?'':STAT[t.who]));if(branch)setN(t.who,'working',ph=='books'?'writing the books':ph=='report'?'reporting':ph=='improve'?'noting lessons':'recording the dispatch');
+if(!branch&&t.who!='Mara'){const nxt=t.who=='Quinn'||t.who=='Sol'||t.who=='Paige'?'Vera':'Director';packet(t.who,nxt,600)}}
+if(!branch){i++;showCalls(D.yes.calls.slice(0,Math.ceil(i*PRE/gate)),false)}}
+function reset(){clearTimeout(timer);feed.innerHTML='';after.innerHTML='';queue.className='queue';queue.innerHTML='<small>Nothing waiting yet.</small>';['k0','k1','k2','k3'].forEach(x=>{const e=document.getElementById(x);[...e.querySelectorAll('.case')].forEach(c=>c.remove())});
+const c=document.getElementById('kc');if(c)c.remove();Object.keys(POS).forEach(n=>setN(n,'','idle'));ev=A.slice(0,gate);k=0;i=0;applied=0;branch=null;showCalls([],false);saved();state='run'}
+function tick(){if(state!='run')return;if(k<ev.length){apply(ev[k++])}
+if(k>=ev.length){if(!branch)openGate();else finish()}}
+function loop(ms){clearTimeout(timer);timer=setTimeout(()=>{tick();if(state=='run')loop(ms)},ms)}
+function openGate(){state='gate';clearTimeout(timer);setN('Director','waiting','needs your decision');kan(2,'gold');
+const qa=A.find(t=>t.who=='Quinn'&&t.quote),sa=A.find(t=>t.who=='Sol'),cb=((sa&&sa.msg.match(/Callback (\S+?);/))||[])[1];
+feed.insertAdjacentHTML('beforeend',`<div class="msg approval"><span class=tag>approval needed</span><br><b>Director</b>: Approve sending the family message and dispatching the removal team?</div>`);feed.scrollTop=feed.scrollHeight;
+queue.className='queue live';queue.innerHTML=`<b>Waiting on the Director</b><ul><li>Family message drafted by Faye, passed Vera's compliance lint</li><li>Quote (price list, informational): ${esc(qa?fq(qa.quote):'')}</li><li>Callback planned for ${esc(cb?cb.slice(11,16):'7:00')}</li><li>Paperwork pre-filled, family-only fields left blank</li><li>Removal-team dispatch ticket (workflow round trip, no real team)</li></ul><button class=go id=ap>Approve</button><button class=deny id=dn>Deny</button>`;
+ap.onclick=()=>decide('yes');dn.onclick=()=>decide('no')}
+function decide(b){if(state!='gate')return;ap.disabled=dn.disabled=true;queue.className='queue';branch=b;showCalls(D[b].calls,true);ev=D[b].trace.slice(gate);k=0;state='run';loop(900)}
+function finish(){state='done';clearTimeout(timer);Object.keys(POS).forEach(n=>{const e=document.getElementById('n-'+n);if(e.classList.contains('working'))setN(n,'done','done')});if(branch=='yes')applied=TOTAL;saved();
+queue.innerHTML=`<small>${branch=='yes'?'Approved: dispatched and logged.':'Denied: nothing sent, nothing dispatched.'}</small>`;
+const wl=[D.words.opener].concat(D.words.lines).map(x=>`<div class=wrow><span>${esc(x)}</span><button class=pl onclick="navigator.clipboard&&navigator.clipboard.writeText(this.previousElementSibling.textContent);this.textContent='copied'">copy</button></div>`).join('');const wsrc=D.words.source=='model'?`Optional prompts drafted by Faye (OpenAI ${esc(D.words.model||'gpt-4o-mini')}, one real model call made when this page was built, fictional case) and checked by Vera's deterministic call-lines lint (${D.words.rejected} rejected). Use, change or ignore.`:`Illustrative template lines (no model call in this build), checked by the same deterministic lint. Use, change or ignore.`;
+after.innerHTML=branch=='yes'?`<div class=payoff><h2>6:40 AM. The Director wakes to a finished case.</h2><small>Illustrative morning summary of what the recorded run produced.</small><ul><li>The family was told a director will call at 7:00, in a message that passed Vera's lint</li><li>A price range from the price list, shown as informational</li><li>Removal-team dispatch ticket sent to the workflow (a workflow round trip, no real team)</li><li>Paperwork pre-filled; family-only fields left blank</li><li>A books entry: quoted, not invoiced</li></ul><b>No night of scrambling. One tap of approval.</b><br><br><details class=wfc><summary>Words for the call <small>(optional, in your own words)</small></summary><div class=wbody><small>${wsrc}</small><div class=wl>${wl}</div></div></details><br><button class=alt onclick="startRun(true)">Replay</button> <button class=deny onclick="startRun(true,'deny')">Replay and try Deny</button></div>`:`<div class="payoff no"><h2>Denied. Nothing was sent.</h2><ul><li>The family hears nothing from Vigil, nothing is dispatched, and no books entry is written</li><li>The Director's no is final and the case is closed in the log</li></ul><button class=alt onclick="startRun(true)">Replay and Approve</button></div>`}
+let wantDeny=false;
+function startRun(auto,mode){wantDeny=mode=='deny';reset();if(auto)loop(1000);else tick();if(wantDeny){const w=setInterval(()=>{if(state=='gate'){clearInterval(w);setTimeout(()=>decide('no'),1200)}if(state=='idle'||state=='done')clearInterval(w)},300)}}
+play.onclick=()=>startRun(true);step.onclick=()=>{if(state=='idle'||state=='done'){reset();tick()}else if(state=='run'&&!timer_active())tick()};
+function timer_active(){return false}
+const L=[['i1',1200],['i2',3800],['i3',6800]];L.forEach(x=>setTimeout(()=>document.getElementById(x[0]).classList.add('on'),x[1]));
+function closeIntro(go){intro.classList.add('gone');setTimeout(()=>{intro.style.display='none';drawLines();if(go)startRun(true)},900)}
+const NP=VP.replace('voice/','narration.mp3');let nar=null;function narrate(){if(!nar)nar=new Audio(NP);nar.paused?nar.play():nar.pause()}
+begin.onclick=()=>closeIntro(true);beginN.onclick=()=>{narrate();closeIntro(true)};narr.onclick=narrate;skip.onclick=()=>closeIntro(false);
+saved();
+if(/autostart/.test(location.search)){intro.style.display='none';setTimeout(()=>{drawLines();startRun(true,/deny/.test(location.search)?'deny':undefined)},700)}</script>

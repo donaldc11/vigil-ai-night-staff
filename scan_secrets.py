@@ -9,7 +9,7 @@ bad = 0
 for root, dirs, files in os.walk("."):
     dirs[:] = [d for d in dirs if d not in {".git", "__pycache__", "out"}]
     for f in files:
-        if f.endswith((".db", ".png", ".pptx", ".tgz")) or f == "scan_secrets.py": continue
+        if f.endswith((".db", ".png", ".pptx", ".tgz", ".mp4", ".mp3", ".jpg")) or f == "scan_secrets.py": continue
         p = os.path.join(root, f)
         for i, line in enumerate(open(p, errors="ignore"), 1):
             for n, rx in PAT.items():
