@@ -226,8 +226,8 @@ class TestHandoff(Base):
         srv = HTTPServer(("127.0.0.1", 0), Stub); threading.Thread(target=srv.serve_forever, daemon=True).start()
         try:
             Stub.status = 200; Stub.echo = True; os.environ["VIGIL_N8N_WEBHOOK_URL"] = f"http://127.0.0.1:{srv.server_port}/x"
-            r = vigil.run(CALL, YES); lex = [t for t in r["trace"] if t["who"] == "Lex" and t["phase"] == "report"][0]
-            self.assertIn("Workflow ticket", lex["msg"]); self.assertIn("ticket", lex)
+            r = vigil.run(CALL, YES); vera = [t for t in r["trace"] if t["who"] == "Vera" and t["phase"] == "report"][0]
+            self.assertIn("Workflow ticket", vera["msg"]); self.assertIn("ticket", vera)
         finally: srv.shutdown(); srv.server_close()
 
 class TestImprove(Base):
@@ -254,10 +254,10 @@ class OAI(BaseHTTPRequestHandler):
     GOODX = {"quinn": '{"items": ["direct_cremation", "cremation_with_service"], "note": "Here are the closest matches for the director."}',
              "sol": '{"plan": "standby_tonight", "note": "Team is on standby, callback at seven."}',
              "paige": '{"forms": ["death certificate worksheet", "SSA notice draft"], "note": "Forms are ready, family fields left blank."}',
-             "lex": '{"verdict": "pass", "reason": "Tone is kind and no promises are made."}'}
+             "vera": '{"verdict": "pass", "reason": "Tone is kind and no promises are made."}'}
     def do_POST(self):
         n = int(self.headers.get("Content-Length", 0)); body = self.rfile.read(n).decode(); OAI.bodies.append(body)
-        key = "quinn" if "price-list item" in body else "sol" if "overnight plan" in body else "paige" if "pre-fill" in body else "lex" if "Review the family message" in body else None
+        key = "quinn" if "price-list item" in body else "sol" if "overnight plan" in body else "paige" if "pre-fill" in body else "vera" if "Review the family message" in body else None
         self.send_response(OAI.status); self.end_headers()
         content = OAI.extra.get(key, OAI.GOODX[key]) if key else (OAI.replies.pop(0) if OAI.replies else "{}")
         self.wfile.write(json.dumps({"choices": [{"message": {"content": content}}], "usage": {"prompt_tokens": 100, "completion_tokens": 20}}).encode())
@@ -276,7 +276,7 @@ class TestHandoffsAndBooks(Base):
     def test_handoff_log_and_books_entry(self):
         led = vigil.Ledger(); r = vigil.run(CALL, YES, ledger=led)
         h = [(t["frm"], t["to"]) for t in r["trace"] if t["phase"] == "handoff"]
-        self.assertEqual(h[:3], [("Mara", "Quinn"), ("Mara", "Sol"), ("Mara", "Paige")]); self.assertIn(("Faye", "Lex, Director"), h)
+        self.assertEqual(h[:3], [("Mara", "Quinn"), ("Mara", "Sol"), ("Mara", "Paige")]); self.assertIn(("Faye", "Vera, Director"), h)
         self.assertTrue(all("caller text" in t["evidence"] for t in r["trace"] if t["phase"] == "handoff" and t["frm"] == "Mara"))
         total, n = led.receivable_quoted(); self.assertEqual(n, 1); self.assertEqual(total, vigil.GPL["items"]["direct_cremation"])
     def test_denied_case_books_nothing(self):
@@ -354,7 +354,7 @@ class TestWorkerDecisions(TestLLM):
     def _run(self, **extra):
         OAI.extra = extra; OAI.replies = ['{"first_call": true, "preference": "cremation", "location": "home"}', GOOD_MSG]; return vigil.run(CALL, YES)
     def test_all_six_roles_real(self):
-        r = self._run(); self.assertEqual({c["purpose"] for c in r["llm"] if c["mode"] == "real"}, {"mara_classify", "quinn_quote_choice", "sol_plan_choice", "paige_forms_choice", "faye_draft", "lex_review"})
+        r = self._run(); self.assertEqual({c["purpose"] for c in r["llm"] if c["mode"] == "real"}, {"mara_classify", "quinn_quote_choice", "sol_plan_choice", "paige_forms_choice", "faye_draft", "vera_review"})
     def test_quinn_prices_always_from_gpl(self):
         r = self._run(); q = [t for t in r["trace"] if t["who"] == "Quinn"][0]["quote"]; self.assertEqual(q, {"direct_cremation": vigil.GPL["items"]["direct_cremation"], "cremation_with_service": vigil.GPL["items"]["cremation_with_service"]})
     def test_quinn_invented_item_or_price_note_falls_back(self):
@@ -367,8 +367,8 @@ class TestWorkerDecisions(TestLLM):
         r = self._run(paige='{"forms": ["SSA notice draft", "VA notice draft"], "note": "x"}'); self.assertEqual(self._modes(r)["paige_forms_choice"], "fallback")
         r = self._run(); pw = [t for t in r["trace"] if t["who"] == "Paige"][0]["paperwork"]; self.assertEqual(pw["forms"], ["death certificate worksheet", "SSA notice draft"]); self.assertIn("SSN", pw["blank_for_family"])
     def test_lex_flag_is_advisory_and_gate_stays_deterministic(self):
-        r = self._run(lex='{"verdict": "flag", "reason": "tone feels cold"}'); self.assertEqual(r["outcome"], "completed")
-        self.assertEqual([t for t in r["trace"] if t["who"] == "Lex" and t["phase"] == "check"][0]["llm_review"], "flag")
+        r = self._run(vera='{"verdict": "flag", "reason": "tone feels cold"}'); self.assertEqual(r["outcome"], "completed")
+        self.assertEqual([t for t in r["trace"] if t["who"] == "Vera" and t["phase"] == "check"][0]["llm_review"], "flag")
     def test_lex_pass_cannot_unblock_a_failing_lint(self):
         OAI.extra = {}; OAI.replies = ['{"first_call": true, "preference": "cremation", "location": "home"}', "We will arrange the service. Call at 7:00 AM."]
         r = vigil.run(CALL, YES); self.assertEqual(r["outcome"], "completed")   # drafted message rejected by lint -> template used, still lint-clean

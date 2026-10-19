@@ -12,7 +12,7 @@ All data fictional. Vigil answers first calls for a funeral home outside busines
 8. Sponsor integrations report their true mode (real, simulated, fallback, external) on every run; nothing is claimed real unless the vendor answered.
 
 ## Roles (all report to the Director)
-Mara intake, Quinn quoter, Sol scheduler, Paige paperwork, Faye family liaison, Lex compliance logger.
+Mara intake, Quinn quoter, Sol scheduler, Paige paperwork, Faye family liaison, Vera compliance logger.
 
 ## Review requests
 Check the spec against lint.py, vigil.py and the tests: are rules 1-8 actually enforced, and which are weak? Flag any wording in FAMILY_MSG that could read as arranging services or a price promise.

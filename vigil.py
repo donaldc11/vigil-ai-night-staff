@@ -4,7 +4,7 @@ import adapters, lint as L, llm
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 with open(os.path.join(HERE, "data", "gpl.json")) as _f: GPL = json.load(_f)
-STAFF = [("Mara","Intake"),("Quinn","Quoter"),("Sol","Scheduler"),("Paige","Paperwork"),("Faye","Family Liaison"),("Lex","Compliance Logger")]
+STAFF = [("Mara","Intake"),("Quinn","Quoter"),("Sol","Scheduler"),("Paige","Paperwork"),("Faye","Family Liaison"),("Vera","Compliance Logger")]
 MAX_INPUT = 2000
 _SECRET = secrets.token_bytes(32)
 GATES = ("send_family_message", "dispatch_removal_team")
@@ -79,7 +79,7 @@ def faye_message(handoff, sc, budget, log):
     log.append({"purpose": "faye_draft", "mode": "real", **budget.calls[-1]}); return d
 
 PERSONA = {"Quinn": "Quinn, the quoter: precise, gentle, never pushy.", "Sol": "Sol, the scheduler: calm and practical, speaks in short plain sentences.",
-           "Paige": "Paige, the paperwork clerk: methodical and reassuring.", "Lex": "Lex, the compliance logger: formal, careful, brief."}
+           "Paige": "Paige, the paperwork clerk: methodical and reassuring.", "Vera": "Vera, the compliance logger: formal, careful, brief."}
 def _safe_note(s, n=170):
     if not isinstance(s, str): raise ValueError("note not text")
     s = " ".join(s.split())
@@ -122,12 +122,12 @@ def paige_decide(h, budget, log):
     return llm_decide("Paige", "paige_forms_choice", budget, log, f"Pick which forms to pre-fill from {FORMS}; always include the death certificate worksheet. JSON: " + '{"forms": [names], "note": "one short sentence in your voice"}',
                       f"preference={h['preference']} location={h['location']}", check)
 
-def lex_review(msg, h, budget, log):
+def vera_review(msg, h, budget, log):
     """Advisory second opinion on the drafted message. It cannot approve anything; the deterministic lint is the gate."""
     def check(j):
         if j.get("verdict") not in ("pass", "flag"): raise ValueError("bad verdict")
         return {"verdict": j["verdict"], "reason": _safe_note(j.get("reason", ""), 140)}
-    return llm_decide("Lex", "lex_review", budget, log, "Review the family message. Default to pass. Flag ONLY if it states a price, promises or arranges a specific service, or gives legal or medical advice. Offering a callback from a director is fine and is NOT a reason to flag. JSON: " + '{"verdict": "pass"|"flag", "reason": "one short sentence"}',
+    return llm_decide("Vera", "vera_review", budget, log, "Review the family message. Default to pass. Flag ONLY if it states a price, promises or arranges a specific service, or gives legal or medical advice. Offering a callback from a director is fine and is NOT a reason to flag. JSON: " + '{"verdict": "pass"|"flag", "reason": "one short sentence"}',
                       "Message: " + msg, check, max_tokens=80)
 
 def quote(pref):
@@ -187,7 +187,7 @@ def run(call_text, director=None, ledger=None, outdir=None, reg=None, now=None, 
          + (" (applying lesson: ask for a callback number first)" if handoff["ask_callback_first"] else "") + ". Routing to Quinn, Sol, Paige.", **info)
     for to in ("Quinn", "Sol", "Paige"): step("Handoff", "handoff", f"Mara -> {to}", frm="Mara", to=to, fields=sorted(k for k in handoff if k != "case_id"), evidence="structured brief only; no caller text passed")
     if not handoff["first_call"]:
-        step("Lex", "report", "Non-urgent call logged. No dispatch, no arrangements discussed."); local_real.add("Lex: ledger (sqlite)")
+        step("Vera", "report", "Non-urgent call logged. No dispatch, no arrangements discussed."); local_real.add("Vera: ledger (sqlite)")
         return _finish(case_id, trace, calls, local_real, "non_urgent", outdir, llm=llm_log)
     q = quote(handoff["preference"]); use("PromptQL", "price_query"); use("Paritok", "compress_context"); local_real.add("Quinn: GPL price lookup from data/gpl.json")
     qd = quinn_decide(handoff, budget, llm_log); qnote = ""
@@ -203,22 +203,22 @@ def run(call_text, director=None, ledger=None, outdir=None, reg=None, now=None, 
     if not handoff["callback_last4"]: pw["blank_for_family"].append("callback phone number")
     use("Flatkey", "route_model_call"); cel = use("Celesto", "validate_paperwork", {"json": json.dumps(pw)})
     step("Paige", "act", "Pre-filled paperwork packet; family-only fields left blank." + pnote, paperwork=pw)
-    step("Handoff", "handoff", "Quinn -> Faye, Lex", frm="Quinn", to="Faye, Lex", fields=["quote_item_ids"], evidence="GPL item ids; prices from price list")
-    step("Handoff", "handoff", "Sol -> Faye, Lex", frm="Sol", to="Faye, Lex", fields=["callback", "removal_plan"], evidence="callback computed by code")
-    step("Handoff", "handoff", "Paige -> Lex", frm="Paige", to="Lex", fields=["forms", "blank_for_family"], evidence=f"Celesto sandbox check: {cel.mode}")
+    step("Handoff", "handoff", "Quinn -> Faye, Vera", frm="Quinn", to="Faye, Vera", fields=["quote_item_ids"], evidence="GPL item ids; prices from price list")
+    step("Handoff", "handoff", "Sol -> Faye, Vera", frm="Sol", to="Faye, Vera", fields=["callback", "removal_plan"], evidence="callback computed by code")
+    step("Handoff", "handoff", "Paige -> Vera", frm="Paige", to="Vera", fields=["forms", "blank_for_family"], evidence=f"Celesto sandbox check: {cel.mode}")
     msg = faye_message(handoff, sc, budget, llm_log)
-    step("Handoff", "handoff", "Faye -> Lex (draft) -> Director (approval)", frm="Faye", to="Lex, Director", fields=["family_message"], evidence="draft text bound to the Director's approval")
-    issues = L.lint(msg); local_real.add("Lex: local compliance lint")
+    step("Handoff", "handoff", "Faye -> Vera (draft) -> Director (approval)", frm="Faye", to="Vera, Director", fields=["family_message"], evidence="draft text bound to the Director's approval")
+    issues = L.lint(msg); local_real.add("Vera: local compliance lint")
     use("Prelint", "review_spec")
-    lr = lex_review(msg, handoff, budget, llm_log) if not issues else None
-    if lr: local_real.add("Lex: OpenAI advisory review (deterministic lint is the gate)")
+    lr = vera_review(msg, handoff, budget, llm_log) if not issues else None
+    if lr: local_real.add("Vera: OpenAI advisory review (deterministic lint is the gate)")
     lnote = (f' LLM second opinion: {lr["verdict"]}. "{lr["reason"]}"' if lr else "")
-    step("Lex", "check", ("Compliance lint passed." if not issues else f"BLOCKED: {issues}") + lnote, issues=issues, **({"llm_review": lr["verdict"]} if lr else {}))
+    step("Vera", "check", ("Compliance lint passed." if not issues else f"BLOCKED: {issues}") + lnote, issues=issues, **({"llm_review": lr["verdict"]} if lr else {}))
     if issues: return _finish(case_id, trace, calls, local_real, "blocked_by_lint", outdir, llm=llm_log)
     # security gate: a REAL Snyk scan that finds vulnerabilities blocks dispatch. Simulated/fallback does not gate (and is labeled so).
     sn = use("Snyk", "scan")
     if sn.mode == "real" and not sn.evidence.get("ok", False):
-        step("Lex", "check", "BLOCKED by security scan: vulnerabilities found.", scan=sn.evidence); return _finish(case_id, trace, calls, local_real, "blocked_by_security", outdir, llm=llm_log)
+        step("Vera", "check", "BLOCKED by security scan: vulnerabilities found.", scan=sn.evidence); return _finish(case_id, trace, calls, local_real, "blocked_by_security", outdir, llm=llm_log)
     # approval gates: each action is only reachable with a matching Approval
     a1 = director.decide("send_family_message", case_id, {"msg": msg})
     a2 = director.decide("dispatch_removal_team", case_id, {"callback": sc["callback"], "preference": handoff["preference"]}) if a1 else None
@@ -229,13 +229,13 @@ def run(call_text, director=None, ledger=None, outdir=None, reg=None, now=None, 
     n8 = use("n8n", "dispatch_workflow", {"case_id": case_id, "preference": handoff["preference"], "callback": sc["callback"]})
     step("Sol", "act", "Dispatch ticket sent to the dispatch workflow (a workflow round trip; no real removal team exists in this build).")
     require("send_family_message", case_id, {"msg": msg}, a1); use("Masky", "avatar")
-    top = next(iter(q)); ledger.book(case_id, top, q[top]); local_real.add("Lex: books entry (sqlite, quoted not invoiced)")
-    step("Lex", "books", f"Books: logged {top.replace('_', ' ')} at ${q[top]:,} as quoted, not invoiced (an estimate from the price list, not a charge).", item=top, quoted_usd=q[top])
+    top = next(iter(q)); ledger.book(case_id, top, q[top]); local_real.add("Vera: books entry (sqlite, quoted not invoiced)")
+    step("Vera", "books", f"Books: logged {top.replace('_', ' ')} at ${q[top]:,} as quoted, not invoiced (an estimate from the price list, not a charge).", item=top, quoted_usd=q[top])
     step("Faye", "act", "Approved message recorded for delivery (no real call or text is placed in this build).", message=msg)
     use("Tenki", "lint_in_sandbox", {"msg": msg}); use("Glasser", "prospect_research")
     bd = use("BAND", "post", {"text": f"Case {case_id} ({handoff['preference']}, {handoff['location']}): approved, callback {sc['callback']}. (FICTIONAL)"})
     ticket = n8.evidence.get("ticket") if n8.mode == "real" else None
-    step("Lex", "report", "Case logged: disclosure given, approvals, quote shown." + (f" Workflow ticket at {ticket['dispatched_at']}." if ticket else " Workflow ticket: simulated.")
+    step("Vera", "report", "Case logged: disclosure given, approvals, quote shown." + (f" Workflow ticket at {ticket['dispatched_at']}." if ticket else " Workflow ticket: simulated.")
          + (f" BAND room {bd.evidence['room']}." if bd.mode == "real" else ""), ticket=ticket)
     if not handoff["callback_last4"]:
         ledger.learn("ask_callback_number_first", "caller gave no callback number; ask for it first"); note = "Learned and saved: ask for a callback number first on the next call."

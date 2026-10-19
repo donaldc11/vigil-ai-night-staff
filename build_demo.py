@@ -7,9 +7,9 @@ no = vigil.run(CALL, vigil.Director(lambda g, c, x: False), now=NOW)
 COL = ["#6b8cae", "#8a6bae", "#ae8a6b", "#6bae8a", "#ae6b7e", "#7e7e7e"]
 def calls(r): return [dict(sponsor=c["sponsor"], action=c["action"], mode=c["mode"].upper(), reason=c["reason"]) for c in r["sponsor_calls"]]
 import base64
-AV = {"Mara": "mara", "Quinn": "quinn", "Sol": "sol", "Paige": "paige", "Faye": "faye", "Lex": "vera"}
+AV = {"Mara": "mara", "Quinn": "quinn", "Sol": "sol", "Paige": "paige", "Faye": "faye", "Vera": "vera"}
 IMG = {k: "data:image/jpeg;base64," + base64.b64encode(open(f"avatars/{v}.jpg", "rb").read()).decode() for k, v in AV.items()}
-data = json.dumps({"home": vigil.GPL["home"], "img": IMG, "voice": {k: v for k, v in {"Mara": "mara", "Quinn": "quinn", "Sol": "sol", "Paige": "paige", "Faye": "faye", "Lex": "vera"}.items()}, "office": {"Mara": "Front office", "Faye": "Front office", "Quinn": "Back office", "Sol": "Back office", "Paige": "Back office", "Lex": "Back office"}, "staff": [{"name": n, "role": r, "color": COL[i]} for i, (n, r) in enumerate(vigil.STAFF)],
+data = json.dumps({"home": vigil.GPL["home"], "img": IMG, "voice": {k: v for k, v in {"Mara": "mara", "Quinn": "quinn", "Sol": "sol", "Paige": "paige", "Faye": "faye", "Vera": "vera"}.items()}, "office": {"Mara": "Front office", "Faye": "Front office", "Quinn": "Back office", "Sol": "Back office", "Paige": "Back office", "Vera": "Back office"}, "staff": [{"name": n, "role": r, "color": COL[i]} for i, (n, r) in enumerate(vigil.STAFF)],
     "yes": {"trace": yes["trace"], "calls": calls(yes), "outcome": yes["outcome"]}, "no": {"trace": no["trace"], "calls": calls(no), "outcome": no["outcome"]},
     "ts": datetime.datetime.now().strftime("%b %d %Y %H:%M local")})
 page = """<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Vigil - AI night staff (FICTIONAL demo)</title><style>
@@ -25,7 +25,7 @@ main{display:grid;grid-template-columns:260px 1fr 340px;gap:16px;padding:16px}@m
 <div class=banner>FICTIONAL DATA. This page REPLAYS two recorded runs (recorded __TS__, simulated clock 2:10 AM). Sponsor modes are as recorded: REAL / EXTERNAL / SIMULATED / FALLBACK. No real call is placed, no real person is involved.</div>
 <header><b>Vigil</b> - AI night staff for funeral homes &middot; <span id=home></span> &middot; <button class=go id=play>Start the 2:10 AM call</button></header>
 <main><div><h3>Org chart</h3><div class=card><b>Director (human)</b><br><small>approves family messages and dispatch</small></div><div id=staff></div>
-<div class=card><small>Six LLM-driven agents (OpenAI gpt-4o-mini, $3 cap): each makes one decision plus a short in-character line. The gates, prices, callback time and approvals are deterministic code, and the Director (human) approves. Front office: Mara, Faye. Back office: Quinn, Sol, Paige, Lex. Avatars and voices are AI-generated and fictional.</small></div></div>
+<div class=card><small>Six LLM-driven agents (OpenAI gpt-4o-mini, $3 cap): each makes one decision plus a short in-character line. The gates, prices, callback time and approvals are deterministic code, and the Director (human) approves. Front office: Mara, Faye. Back office: Quinn, Sol, Paige, Vera. Avatars and voices are AI-generated and fictional.</small></div></div>
 <div><h3>Night desk</h3><div id=feed></div></div>
 <div><h3>Sponsor tools (as recorded)</h3><div id=calls></div></div></main>
 <script>const VP=location.pathname.endsWith('demo.html')?'site/voice/':'voice/';const D=__DATA__;home.textContent=D.home;
