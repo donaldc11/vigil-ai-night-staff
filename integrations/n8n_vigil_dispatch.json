@@ -1,0 +1,16 @@
+{
+  "name": "Vigil first-call dispatch (FICTIONAL)",
+  "nodes": [
+    {"parameters": {"httpMethod": "POST", "path": "vigil-dispatch", "responseMode": "responseNode", "options": {}},
+     "id": "a1", "name": "Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [0, 0], "webhookId": "vigil-dispatch"},
+    {"parameters": {"jsCode": "const b = $input.first().json.body || {};\nif (!b.case_id) { throw new Error('missing case_id'); }\nconst ok = ['cremation','burial','unknown'].includes(b.preference);\nreturn [{ json: { case_id: b.case_id, preference: ok ? b.preference : 'unknown', callback: b.callback, on_call_director: 'Director (FICTIONAL)', removal_team: 'queued', dispatched_at: new Date().toISOString() } }];"},
+     "id": "a2", "name": "Build dispatch ticket", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [260, 0]},
+    {"parameters": {"respondWith": "json", "responseBody": "={{ $json }}", "options": {}},
+     "id": "a3", "name": "Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [520, 0]}
+  ],
+  "connections": {
+    "Webhook": {"main": [[{"node": "Build dispatch ticket", "type": "main", "index": 0}]]},
+    "Build dispatch ticket": {"main": [[{"node": "Respond", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"}
+}
