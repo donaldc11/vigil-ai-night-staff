@@ -13,9 +13,10 @@ Set in the shell or a gitignored .env that is exported before running. Never com
 | VIGIL_PARITOK_URL (local `paritok proxy`), VIGIL_OPENAI_BASE_URL pointing at it | Paritok gateway | OpenAI calls pass through it (/stats) | REAL (tokens saved 0 on tiny prompts) |
 | GLASSER_API_KEY, TENKI_API_KEY_EAZY | Glasser balance check, Tenki sandbox lint | vendor answers | REAL |
 | Masky | VIGIL_MASKY_API_KEY, VIGIL_MASKY_CONV_SLUG | read-only API call at build | REAL (read-back) |
-| PromptQL, Flatkey | none | no runtime API built | stay SIMULATED |
+| Flatkey | VIGIL_FLATKEY_API_KEY | one cheap chat call at build | REAL (connectivity check) |
+| PromptQL | none | no runtime API built | stays SIMULATED |
 
-Rules: a tool is only called REAL if we invoked it and it answered; EXTERNAL = ran repo-side, evidence link only; FALLBACK = configured but failed. Count in the recorded run (12 sponsors): REAL 9 (n8n, Snyk, BAND, Celesto, Paritok, Glasser, Tenki, RocketRide on a self-hosted engine, Masky read-back), EXTERNAL 1 (Prelint), SIMULATED 2 (PromptQL, Flatkey). Snyk also needs VIGIL_SNYK_PYTHON (a python with the pinned deps installed) and a token Snyk accepts; BAND needs a key that is linked to an agent.
+Rules: a tool is only called REAL if we invoked it and it answered; EXTERNAL = ran repo-side, evidence link only; FALLBACK = configured but failed. Count in the recorded run (12 sponsors): REAL 10 (Flatkey gateway call, n8n, Snyk, BAND, Celesto, Paritok, Glasser, Tenki, RocketRide on a self-hosted engine, Masky read-back), EXTERNAL 1 (Prelint), SIMULATED 1 (PromptQL). Snyk also needs VIGIL_SNYK_PYTHON (a python with the pinned deps installed) and a token Snyk accepts; BAND needs a key that is linked to an agent.
 
 ## OpenAI (all six agents)
 - OPENAI_API_KEY (vault only). Optional: VIGIL_LLM_CAP_USD (default 3.00, persisted in ~/.vigil_llm_spend.json), VIGIL_LLM_RUN_TOKENS (3000), VIGIL_OPENAI_MODEL.

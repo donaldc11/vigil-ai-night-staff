@@ -181,6 +181,19 @@ class Masky(Adapter):
         if not turns or turns[-1].get("status") != "video": raise RuntimeError("no rendered video turn")
         return {"avatar": mine[0].get("displayName"), "turn_status": "video", "credits_charged": turns[-1].get("creditCost"), "note": "portraits and clips hand-generated in Masky; this call only reads the avatar and a rendered speak turn"}
 
+class Flatkey(Adapter):
+    name = "Flatkey"; job = "model API gateway: one chat-completion call through Flatkey's OpenAI-compatible router (a gateway, not a key vault)"; env = ("VIGIL_FLATKEY_API_KEY",)
+    def real(self, action, p):
+        h = {"Authorization": "Bearer " + os.environ["VIGIL_FLATKEY_API_KEY"], "Content-Type": "application/json"}
+        model = os.environ.get("VIGIL_FLATKEY_MODEL", "gemini-3.1-flash-lite")
+        body = {"model": model, "max_tokens": 12, "messages": [{"role": "user", "content": "Reply with exactly one word: ready"}]}
+        req = urllib.request.Request("https://router.flatkey.ai/v1/chat/completions", json.dumps(body).encode(), h)
+        with urllib.request.urlopen(req, timeout=30) as r: out = json.loads(r.read())
+        txt = (out.get("choices") or [{}])[0].get("message", {}).get("content", "")
+        if "ready" not in txt.lower(): raise RuntimeError("unexpected completion")
+        u = out.get("usage") or {}
+        return {"gateway": "router.flatkey.ai", "model": out.get("model", model), "completion_ok": True, "tokens": u.get("total_tokens"), "note": "connectivity and routing check only; Vigil's decisions still call OpenAI directly"}
+
 class Plain(Adapter):
     def __init__(s, name, job, sim_reason=None):
         s.name, s.job = name, job
@@ -191,4 +204,4 @@ def registry():
         RepoSide("Prelint", "PR compliance review of the agent spec", "VIGIL_PRELINT_EVIDENCE_URL"),
         TenkiSandbox("Tenki", "CI runner for the test suite (repo-side) and a sandbox VM that re-runs Vera's compliance lint", "VIGIL_TENKI_EVIDENCE_URL"),
         Band(), Paritok(), Glasser(), Plain("PromptQL", "natural-language ledger queries", "3/3 verified answers in PromptQL workspace on the pasted price list and ledger; no runtime API call"),
-        Plain("Flatkey", "model API / failover gateway (not a key vault)"), Masky()]}
+        Flatkey(), Masky()]}

@@ -15,6 +15,7 @@ def detail(c):
     if s == "BAND": return "case update posted to a BAND room"
     if s == "Paritok": return "OpenAI calls routed through the Paritok gateway (%s requests; tokens saved: %s)" % (e.get("requests_through_gateway"), e.get("tokens_saved"))
     if s == "Glasser": return "live balance check plus one recorded research run ($%s)" % (e.get("recorded_research_run", {}).get("charge_usd"))
+    if s == "Flatkey": return "one chat-completion call through the Flatkey router (gemini-3.1-flash-lite) returned; connectivity check only, Vigil decisions still call OpenAI directly"
     if s == "Masky": return "queried the Masky API: Vigil avatar found and a speak-mode video turn rendered (0 credits charged); portraits and clips were hand-generated in Masky"
     if s == "RocketRide": return "ran vigil_intake.pipe on a live self-hosted RocketRide engine (open-source server); the engine accepted the call text and returned it parsed"
     if s == "Prelint": return "PR review ran repo-side (link)"
@@ -52,7 +53,7 @@ page = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "site_templ
 page = page.replace("__DATA__", data).replace("__TS__", json.loads(data)["ts"])
 import sys
 _m = [c["mode"] for c in yes["sponsor_calls"]]
-_need = (int(os.environ.get("VIGIL_MIN_REAL", "0" if os.environ.get("VIGIL_ALLOW_SIM") else "9")), int(os.environ.get("VIGIL_MIN_EXTERNAL", "0" if os.environ.get("VIGIL_ALLOW_SIM") else "1")))
+_need = (int(os.environ.get("VIGIL_MIN_REAL", "0" if os.environ.get("VIGIL_ALLOW_SIM") else "10")), int(os.environ.get("VIGIL_MIN_EXTERNAL", "0" if os.environ.get("VIGIL_ALLOW_SIM") else "1")))
 print("recorded modes: real", _m.count("real"), "external", _m.count("external"), "simulated", _m.count("simulated"), "fallback", _m.count("fallback"))
 if _m.count("real") < _need[0] or _m.count("external") < _need[1] or _m.count("fallback"):
     sys.exit("BUILD GUARD: recorded modes regressed (need real>=%d external>=%d fallback=0); nothing written. Check keys / leftover sandboxes." % _need)
