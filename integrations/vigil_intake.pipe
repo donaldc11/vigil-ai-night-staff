@@ -1,9 +1,10 @@
 {
   "components": [
     {"id": "webhook_1", "provider": "webhook", "config": {"hideForm": true, "mode": "Source", "parameters": {}, "type": "webhook"}},
-    {"id": "parse_1", "provider": "parse", "config": {}, "input": [{"lane": "tags", "from": "webhook_1"}]}
+    {"id": "parse_1", "provider": "parse", "config": {}, "input": [{"lane": "tags", "from": "webhook_1"}]},
+    {"id": "response_1", "provider": "response_text", "config": {}, "input": [{"lane": "text", "from": "parse_1"}]}
   ],
   "project_id": "00000000-0000-4000-8000-000000000001",
   "version": 1,
-  "_status": "UNVERIFIED: minimal source+parse graph modeled on the repo's examples/rag-pipeline.pipe; not run against a live engine; no response node yet"
+  "_status": "VERIFIED 2026-10-19: ran on a self-hosted RocketRide engine (open-source server v3.5.0-prerelease, linux-x64, localhost). Source -> parse -> response_text returned the call text."
 }

@@ -41,12 +41,20 @@ class RocketRide(Adapter):
     name = "RocketRide"; job = "run the intake pipeline on the call text"; env = ("VIGIL_ROCKETRIDE_URI", "VIGIL_ROCKETRIDE_PIPE")
     def real(self, action, p):
         from rocketride import RocketRideClient
+        sent = p.get("text", "")
         async def go():
-            async with RocketRideClient(uri=os.environ["VIGIL_ROCKETRIDE_URI"], auth=os.environ.get("VIGIL_ROCKETRIDE_KEY", "")) as c:
+            async with RocketRideClient(uri=os.environ["VIGIL_ROCKETRIDE_URI"], auth=os.environ.get("VIGIL_ROCKETRIDE_KEY") or "local-dev") as c:
                 t = await c.use(filepath=os.environ["VIGIL_ROCKETRIDE_PIPE"])
-                res = await c.send(t["token"], p.get("text", ""))
-                return {"result_keys": sorted(res)[:8] if isinstance(res, dict) else str(type(res))}
-        return asyncio.run(asyncio.wait_for(go(), 30))
+                try:
+                    res = await c.send(t["token"], sent, {"name": "call.txt"}, "text/plain")
+                finally:
+                    await c.terminate(t["token"])
+                return res
+        res = asyncio.run(asyncio.wait_for(go(), 40))
+        if not isinstance(res, dict) or not res.get("objectId"): raise RuntimeError("engine returned no objectId")
+        back = " ".join(res.get("text") or []) if isinstance(res.get("text"), list) else str(res.get("text") or "")
+        if sent.strip() and sent.strip() not in back: raise RuntimeError("engine response did not contain the sent call text")
+        return {"engine": "self-hosted RocketRide engine (open-source server)", "pipe": os.path.basename(os.environ["VIGIL_ROCKETRIDE_PIPE"]), "object_id": res["objectId"], "text_returned": True, "chars": len(sent)}
 
 class Celesto(Adapter):
     name = "Celesto"; job = "validate generated paperwork inside an isolated sandbox"; env = ("CELESTO_API_KEY",)
@@ -159,6 +167,20 @@ class Paritok(Adapter):
         if h.get("status") != "ok" or not s.get("total_requests"): raise RuntimeError("gateway up but no request passed through it")
         return {"gateway_version": h.get("version"), "requests_through_gateway": s["total_requests"], "tokens_saved": s.get("tokens_saved", 0), "input_tokens_original": s.get("input_tokens_original", 0)}
 
+class Masky(Adapter):
+    name = "Masky"; job = "avatar for the family message: avatar lookup and a rendered speak-mode video turn, read back from the Masky API"; env = ("VIGIL_MASKY_API_KEY", "VIGIL_MASKY_CONV_SLUG")
+    def real(self, action, p):
+        h = {"Authorization": "Bearer " + os.environ["VIGIL_MASKY_API_KEY"]}
+        def get(path):
+            with urllib.request.urlopen(urllib.request.Request("https://masky.ai/api" + path, headers=h), timeout=20) as r: return json.loads(r.read())
+        av = get("/avatars"); av = av if isinstance(av, list) else av.get("avatars", [])
+        mine = [a for a in av if "Vigil" in str(a.get("displayName"))]
+        if not mine: raise RuntimeError("Vigil avatar not found in Masky account")
+        conv = get("/conversations/by-slug/" + os.environ["VIGIL_MASKY_CONV_SLUG"])
+        turns = [t for t in conv.get("turns", []) if t.get("role") == "avatar"]
+        if not turns or turns[-1].get("status") != "video": raise RuntimeError("no rendered video turn")
+        return {"avatar": mine[0].get("displayName"), "turn_status": "video", "credits_charged": turns[-1].get("creditCost"), "note": "portraits and clips hand-generated in Masky; this call only reads the avatar and a rendered speak turn"}
+
 class Plain(Adapter):
     def __init__(s, name, job, sim_reason=None):
         s.name, s.job = name, job
@@ -169,4 +191,4 @@ def registry():
         RepoSide("Prelint", "PR compliance review of the agent spec", "VIGIL_PRELINT_EVIDENCE_URL"),
         TenkiSandbox("Tenki", "CI runner for the test suite (repo-side) and a sandbox VM that re-runs Vera's compliance lint", "VIGIL_TENKI_EVIDENCE_URL"),
         Band(), Paritok(), Glasser(), Plain("PromptQL", "natural-language ledger queries", "3/3 verified answers in PromptQL workspace on the pasted price list and ledger; no runtime API call"),
-        Plain("Flatkey", "model API / failover gateway (not a key vault)"), Plain("Masky", "avatar portraits for the six agents", "six portraits generated in Masky (real assets); no runtime API call")]}
+        Plain("Flatkey", "model API / failover gateway (not a key vault)"), Masky()]}
